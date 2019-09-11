@@ -8,6 +8,12 @@ public abstract class IncDecItem {
 
     public abstract <T> T match(Case<Inc, T> incCase, Case<Dec, T> decCase, Case<Hash, T> hashCase);
 
+    /**
+     * KK: Minor: It would be nice if we could make data items
+     *     extend/implement from a data item class that contains a
+     *     value. The rest of the items (like Hash) can be punctuation
+     *     that doesn't have any value.
+     **/
     public static final class Inc extends IncDecItem {
 
         private int value;
