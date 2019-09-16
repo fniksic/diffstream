@@ -1,0 +1,3 @@
+[submodule "junit-quickcheck"]
+	path = junit-quickcheck
+	url = git@github.com:angelhof/junit-quickcheck.git
