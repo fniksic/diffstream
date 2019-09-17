@@ -126,7 +126,24 @@ under the License.
 			<scope>test</scope>
 			<classifier>tests</classifier>
 		</dependency>
-	</dependencies>
+
+                <!-- Include JUnit Quickcheck dependencies for input generation -->
+                <dependency>
+                  <groupId>com.pholser</groupId>
+                  <artifactId>junit-quickcheck-core</artifactId>
+                  <version>0.9</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.pholser</groupId>
+                  <artifactId>junit-quickcheck-generators</artifactId>
+                  <version>0.9</version>
+                </dependency>
+                <dependency>
+                  <groupId>org.quicktheories</groupId>
+                  <artifactId>quicktheories</artifactId>
+                  <version>0.26</version>
+                </dependency>
+        </dependencies>
 
 	<build>
 		<plugins>
