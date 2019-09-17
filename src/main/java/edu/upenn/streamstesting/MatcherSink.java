@@ -9,7 +9,7 @@ import java.util.List;
 
 public class MatcherSink implements SinkFunction<Boolean> {
 
-    private static final List<Boolean> EXPECTED_RESULT = Arrays.asList(true);
+    private static final List<Boolean> EXPECTED_RESULT = Collections.EMPTY_LIST;
 
     private static final List<Boolean> result = Collections.synchronizedList(new ArrayList<>());
 
