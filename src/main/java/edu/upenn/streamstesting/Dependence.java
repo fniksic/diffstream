@@ -1,5 +1,7 @@
 package edu.upenn.streamstesting;
 
+import java.io.Serializable;
+
 /**
  * Binary predicate that expresses dependence of data items of type {@code T}.
  * Should be symmetric.
@@ -7,7 +9,7 @@ package edu.upenn.streamstesting;
  * @param <T> The type of the data item
  */
 @FunctionalInterface
-public interface Dependence<T> {
+public interface Dependence<T> extends Serializable {
 
     /**
      * Returns true if and only if {@code fst} and {@code snd} are dependent. The implementation
