@@ -7,6 +7,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
@@ -21,6 +22,7 @@ public class IncDecIntegrationTest {
                             .setNumberTaskManagers(1)
                             .build());
 
+    @Ignore
     @Test
     public void testIncDec() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -40,6 +42,6 @@ public class IncDecIntegrationTest {
 
         env.execute();
 
-        assertTrue(sink.equalsTrue());
+        assertTrue("The two IncDec data streams should be equivalent", sink.equalsTrue());
     }
 }
