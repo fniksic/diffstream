@@ -22,7 +22,7 @@ public class IncDecIntegrationTest {
                             .setNumberTaskManagers(1)
                             .build());
 
-    @Ignore
+    //@Ignore
     @Test
     public void testIncDec() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -30,15 +30,15 @@ public class IncDecIntegrationTest {
         MatcherSink sink = new MatcherSink();
 
         DataStream<IncDecItem> first = env.fromElements(IncDecItem.class,
-                new Inc(1), new Dec(2), new Hash(),
-                new Inc(3), new Dec(1), new Hash()
+                new Dec(1), new Dec(2), new Hash(),
+                new Inc(3), new Inc(1), new Hash()
         );
         DataStream<IncDecItem> second = env.fromElements(IncDecItem.class,
-                new Inc(2), new Dec(1), new Hash(),
-                new Inc(1), new Dec(3), new Hash()
+                new Dec(2), new Dec(1), new Hash(),
+                new Inc(1), new Inc(3), new Hash()
         );
 
-        first.connect(second).flatMap(new Matcher<>(new IncDecDependence())).addSink(sink);
+        first.connect(second).flatMap(new Matcher<>(new IncDecDependence())).setParallelism(1).addSink(sink);
 
         env.execute();
 
