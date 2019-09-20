@@ -2,13 +2,14 @@ package edu.upenn.streamstesting;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import edu.upenn.streamstesting.InputGenerator;
 
 public class InputGeneratorTest {
 
-    @Test
+    @Ignore
     public void testInputGenerator() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
