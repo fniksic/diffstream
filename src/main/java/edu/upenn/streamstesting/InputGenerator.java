@@ -1,7 +1,10 @@
 package edu.upenn.streamstesting;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.List;
+import java.util.Map;
+import static java.util.Collections.*;
 
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -21,9 +24,15 @@ import com.pholser.junit.quickcheck.internal.sampling.TupleParameterSampler;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.internal.generator.GeneratorRepository;
+import com.pholser.junit.quickcheck.internal.ParameterTypeContext;
 import org.junit.Test;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestClass;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import com.pholser.junit.quickcheck.generator.Generator;
+
 
 // import org.quicktheories.generators.IntegersDSL;
 // import org.quicktheories.core.Gen;
@@ -86,43 +95,82 @@ public class InputGenerator implements SourceFunction<Integer> {
 		// I am temporarily using that to extract what I
 		// really need to use for the generation.
 
+		List<Method> testMethods = new ArrayList<>();
+		
+		for (Method method : getClass().getMethods()) {
+			if (method.getAnnotation(Test.class) != null) {
+				testMethods.add(method);
+			}
+		}
+
+		Parameter parameter = testMethods.get(0).getParameters()[0];
+
+		ParameterTypeContext paramTypeContext =
+			new ParameterTypeContext(parameter.getName(),
+						 parameter.getAnnotatedType(),
+						 "", // I am not sure if passing an empty name can be a problem
+						 emptyMap()).allowMixedTypes(true);
+
+		// 	Then I can use the sampler.decideGenerator for each argument.
+		Generator<?> generator =
+			sampler.decideGenerator(genRepo, paramTypeContext);			
+		
+		generator.generate(rand, status);
+
+		// TODO: Now that I have both a generator for the type
+		// of the parameter, as well as its type using
+		// reflection. I can instantiate a source that takes
+		// as a parameter the input collection as an array,
+		// and I can then use it to test some sinks.
+
+
+		// The commented block here is probably useless
+		//
 		// TODO: Catch initialization error.
-		// JUnitQuickcheck main = new JUnitQuickcheck(this.getClass());
-
-		// TODO: This is protected. Either change it or find a way around it.
-		// List<FrameworkMethod> methods = main.computeTestMethods();
-		// Statement statement = main.methodBlock(methods.get(0));
-
-		// Now that I have the statement, I can probably find its arguments.
-		//
-		// Following is a private method of Property statement
-		//
-		// private PropertyParameterContext parameterContextFor(
-		//    Parameter parameter,
-		//    Map<String, Type> typeVariables) {
+		// try {
+		//         TestClass thisClass = new TestClass(getClass());
 		
-		//     return new PropertyParameterContext(
-		//         new ParameterTypeContext(
-		//             parameter.getName(),
-		//             parameter.getAnnotatedType(),
-		//             declarerName(parameter),
-		//             typeVariables)
-		//             .allowMixedTypes(true)
-		//     ).annotate(parameter);
+		// 	JUnitQuickcheck main = new JUnitQuickcheck(getClass());
+			
+		// 	List<FrameworkMethod> testMethods = new ArrayList<>();
+		// 	testMethods.addAll(thisClass.getAnnotatedMethods(Property.class));
+			
+		// 	PropertyStatement statement = main.methodBlock(testMethods.get(0));
+
+		// 	import java.lang.reflect.Parameter;
+		// 	        new ParameterTypeContext(
+		// 	            parameter.getName(),
+		// 	            parameter.getAnnotatedType(),
+		// 	            declarerName(parameter),
+		// 	            typeVariables)
+		// 	            .allowMixedTypes(true)
+			
+		// 	Now that I have the statement, I can probably find its arguments.
+			
+		// 	Following is a private method of Property statement
+			
+		// 	private PropertyParameterContext parameterContextFor(
+		// 	   Parameter parameter,
+		// 	   Map<String, Type> typeVariables) {
+			
+		// 	    return new PropertyParameterContext(
+		// 	        new ParameterTypeContext(
+		// 	            parameter.getName(),
+		// 	            parameter.getAnnotatedType(),
+		// 	            declarerName(parameter),
+		// 	            typeVariables)
+		// 	            .allowMixedTypes(true)
+		// 	    ).annotate(parameter);
+		// 	}
+						
+		// } catch (Exception e) {
+		// 	// This is here to catch the possible throw of
+		// 	// an initialization error
+			
+		// 	// TODO: I have to do something in case this
+		// 	// fails
+		// 	return;
 		// }
-
-		// Then I can use the sampler.decideGenerator for each argument.
-		//
-		// public Generator<?> decideGenerator(
-		//          GeneratorRepository repository,
-		//          ParameterTypeContext p)
-		//
-		// where the ParameterTypeContext can be gotten from PropertyParameterContext
-		//
-		// paramContext.typeContext()
-		
-		// TODO: In order to parametrize this, I could follow the tree from JUnitQuickcheck.java
-
 		
 		while (isRunning) {
 			// Integer curr = gen.generate(prng);
@@ -132,9 +180,10 @@ public class InputGenerator implements SourceFunction<Integer> {
 	}
 
 	@Test
-	public void testMethod(DataStream<Integer> input) {
+	public void testMethod(Integer input) {
 		return;
 	}
+
 	
 	@Override
 	public void cancel() {
