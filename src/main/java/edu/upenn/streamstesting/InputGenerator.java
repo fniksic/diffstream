@@ -64,15 +64,8 @@ public class InputGenerator implements SourceFunction<Integer> {
 		GeometricDistribution geo = new GeometricDistribution();
 	        SimpleGenerationStatus status = new SimpleGenerationStatus(geo, rand, 0);
 
-		// Quicktheories
-		// IntegersDSL intGen = new IntegersDSL();
-		// Gen<Integer> gen = intGen.all();
-		// // TODO: Have a random see maybe?
-		// XOrShiftPRNG prng = new XOrShiftPRGN(1);
-
-		// Notes:
-		//
-		// - It seems that I have to initialize and call a parameter sampler
+		// It seems that I have to initialize and call a
+		// parameter sampler
 		ParameterSampler sampler = new TupleParameterSampler(100); // 100 is the number of trials
 
 		// Initializing a generator repository so that I can
@@ -80,41 +73,12 @@ public class InputGenerator implements SourceFunction<Integer> {
 		// parameter.
 		GeneratorRepository genRepo = new GeneratorRepository(rand);
 
-		// Maybe instead of doing it for a simple argument I
-		// need to find a way to do it for the whole property?
-		// The property is the statement that we test, or the
-		// flink program.
-		//
-		// PropertyStatement(
-		// 		  FrameworkMethod method,
-		// 		  TestClass testClass,
-		// 		  GeneratorRepository repo,
-		// 		  GeometricDistribution distro,
-		// 		  Logger logger)
-
-		// I am temporarily using that to extract what I
-		// really need to use for the generation.
-
-		List<Method> testMethods = new ArrayList<>();
-		
-		for (Method method : getClass().getMethods()) {
-			if (method.getAnnotation(Test.class) != null) {
-				testMethods.add(method);
-			}
-		}
+		List<Method> testMethods = getClassTestMethods(getClass()); 
 
 		Parameter parameter = testMethods.get(0).getParameters()[0];
 
-		ParameterTypeContext paramTypeContext =
-			new ParameterTypeContext(parameter.getName(),
-						 parameter.getAnnotatedType(),
-						 "", // I am not sure if passing an empty name can be a problem
-						 emptyMap()).allowMixedTypes(true);
-
-		// 	Then I can use the sampler.decideGenerator for each argument.
 		Generator<?> generator =
-			sampler.decideGenerator(genRepo, paramTypeContext);			
-		
+			parameterGenerator(parameter, sampler, genRepo);
 		generator.generate(rand, status);
 
 		// TODO: Now that I have both a generator for the type
@@ -123,54 +87,9 @@ public class InputGenerator implements SourceFunction<Integer> {
 		// as a parameter the input collection as an array,
 		// and I can then use it to test some sinks.
 
-
-		// The commented block here is probably useless
-		//
-		// TODO: Catch initialization error.
-		// try {
-		//         TestClass thisClass = new TestClass(getClass());
-		
-		// 	JUnitQuickcheck main = new JUnitQuickcheck(getClass());
-			
-		// 	List<FrameworkMethod> testMethods = new ArrayList<>();
-		// 	testMethods.addAll(thisClass.getAnnotatedMethods(Property.class));
-			
-		// 	PropertyStatement statement = main.methodBlock(testMethods.get(0));
-
-		// 	import java.lang.reflect.Parameter;
-		// 	        new ParameterTypeContext(
-		// 	            parameter.getName(),
-		// 	            parameter.getAnnotatedType(),
-		// 	            declarerName(parameter),
-		// 	            typeVariables)
-		// 	            .allowMixedTypes(true)
-			
-		// 	Now that I have the statement, I can probably find its arguments.
-			
-		// 	Following is a private method of Property statement
-			
-		// 	private PropertyParameterContext parameterContextFor(
-		// 	   Parameter parameter,
-		// 	   Map<String, Type> typeVariables) {
-			
-		// 	    return new PropertyParameterContext(
-		// 	        new ParameterTypeContext(
-		// 	            parameter.getName(),
-		// 	            parameter.getAnnotatedType(),
-		// 	            declarerName(parameter),
-		// 	            typeVariables)
-		// 	            .allowMixedTypes(true)
-		// 	    ).annotate(parameter);
-		// 	}
-						
-		// } catch (Exception e) {
-		// 	// This is here to catch the possible throw of
-		// 	// an initialization error
-			
-		// 	// TODO: I have to do something in case this
-		// 	// fails
-		// 	return;
-		// }
+		// TODO: I should probably make a generator for
+		// Datastream, that calls the generator for lists and
+		// then just calls from collection.
 		
 		while (isRunning) {
 			// Integer curr = gen.generate(prng);
@@ -179,6 +98,34 @@ public class InputGenerator implements SourceFunction<Integer> {
 		}
 	}
 
+	public List<Method> getClassTestMethods(Class<?> clazz) {
+		
+		List<Method> testMethods = new ArrayList<>();
+		
+		for (Method method : clazz.getMethods()) {
+			if (method.getAnnotation(Test.class) != null) {
+				testMethods.add(method);
+			}
+		}
+		
+		return testMethods;
+	}
+
+	public Generator<?> parameterGenerator(Parameter parameter,
+					       ParameterSampler sampler,
+					       GeneratorRepository genRepo) {
+		ParameterTypeContext paramTypeContext =
+			new ParameterTypeContext(parameter.getName(),
+						 parameter.getAnnotatedType(),
+						 "", // I am not sure if passing an empty name can be a problem
+						 emptyMap()).allowMixedTypes(true);
+		
+		Generator<?> generator =
+			sampler.decideGenerator(genRepo, paramTypeContext);
+		
+		return generator;
+	}
+	
 	@Test
 	public void testMethod(Integer input) {
 		return;
