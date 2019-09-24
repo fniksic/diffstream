@@ -42,14 +42,38 @@ import com.pholser.junit.quickcheck.generator.Generator;
 // KK: We should probably extend this to be a checkpointable source
 //
 // KK: This might have to be parametrized by some type??
-public class InputGenerator implements SourceFunction<Integer> {
+public class InputGenerator<T> implements SourceFunction<Integer> {
 
 	// KK: From what I understand isRunning must be volatile
 	//     because the `run` function runs indefinitely until
 	//     cancel is called by another thread.
 	private volatile boolean isRunning = true;
+
+	// Fields needed for generation
+	Random randGen;
+	SourceOfRandomness rand;
+	GeometricDistribution geo;
+	SimpleGenerationStatus status;
+	ParameterSampler sampler;
+	GeneratorRepository genRepo;
+
 	
-	public InputGenerator() { }
+	public InputGenerator() {
+		// Instantiate source of randomness and generation status to call the generator
+	        randGen = new Random();
+	        rand = new SourceOfRandomness(randGen);
+	        geo = new GeometricDistribution();
+	        status = new SimpleGenerationStatus(geo, rand, 0);
+
+		// It seems that I have to initialize and call a
+		// parameter sampler
+	        sampler = new TupleParameterSampler(100); // 100 is the number of trials
+
+		// Initializing a generator repository so that I can
+		// call the sampler to decide the generator on a
+		// parameter.
+	        genRepo = new GeneratorRepository(rand);
+	}
 
 	@Override
 	public void run(SourceFunction.SourceContext<Integer> sourceContext) {
@@ -58,27 +82,12 @@ public class InputGenerator implements SourceFunction<Integer> {
 		// TODO: Make this all parametrizable
 		IntegerGenerator gen = new IntegerGenerator();
 
-		// Instantiate source of randomness and generation status to call the generator
-		Random randGen = new Random();
-		SourceOfRandomness rand = new SourceOfRandomness(randGen);
-		GeometricDistribution geo = new GeometricDistribution();
-	        SimpleGenerationStatus status = new SimpleGenerationStatus(geo, rand, 0);
-
-		// It seems that I have to initialize and call a
-		// parameter sampler
-		ParameterSampler sampler = new TupleParameterSampler(100); // 100 is the number of trials
-
-		// Initializing a generator repository so that I can
-		// call the sampler to decide the generator on a
-		// parameter.
-		GeneratorRepository genRepo = new GeneratorRepository(rand);
-
 		List<Method> testMethods = getClassTestMethods(getClass()); 
 
 		Parameter parameter = testMethods.get(0).getParameters()[0];
 
 		Generator<?> generator =
-			parameterGenerator(parameter, sampler, genRepo);
+			parameterGenerator(parameter);
 		generator.generate(rand, status);
 
 		// TODO: Now that I have both a generator for the type
@@ -111,9 +120,7 @@ public class InputGenerator implements SourceFunction<Integer> {
 		return testMethods;
 	}
 
-	public Generator<?> parameterGenerator(Parameter parameter,
-					       ParameterSampler sampler,
-					       GeneratorRepository genRepo) {
+	public Generator<?> parameterGenerator(Parameter parameter) {
 		ParameterTypeContext paramTypeContext =
 			new ParameterTypeContext(parameter.getName(),
 						 parameter.getAnnotatedType(),
@@ -124,6 +131,10 @@ public class InputGenerator implements SourceFunction<Integer> {
 			sampler.decideGenerator(genRepo, paramTypeContext);
 		
 		return generator;
+	}
+
+	public T generate(Generator<T> generator) {
+		return generator.generate(rand, status);
 	}
 	
 	@Test
