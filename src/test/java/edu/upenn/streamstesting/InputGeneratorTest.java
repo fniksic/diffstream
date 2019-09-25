@@ -25,11 +25,11 @@ public class InputGeneratorTest {
 	env.execute();
     }
 
-    @Ignore
+    @Test
     public void testIntegerGenerator1() throws Exception {
 
 	    InputGenerator<Integer> inputGen = new InputGenerator();
-	    
+
 	    Class[] cArg = new Class[1];
 	    cArg[0] = Integer.class;
 
@@ -41,7 +41,7 @@ public class InputGeneratorTest {
 		    (Generator<Integer>) inputGen.parameterGenerator(parameter);
 	    Integer item = inputGen.generate(generator);
 	    Integer output = testInteger1(item);
-	    // TODO: Maybe print that
+	    System.out.println("Random Integer: " + output);
     }
 
 

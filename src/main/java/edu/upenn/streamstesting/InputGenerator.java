@@ -32,7 +32,7 @@ import org.junit.runners.model.TestClass;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import com.pholser.junit.quickcheck.generator.Generator;
-
+import com.pholser.junit.quickcheck.internal.generator.ServiceLoaderGeneratorSource;
 
 // import org.quicktheories.generators.IntegersDSL;
 // import org.quicktheories.core.Gen;
@@ -72,7 +72,7 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 		// Initializing a generator repository so that I can
 		// call the sampler to decide the generator on a
 		// parameter.
-	        genRepo = new GeneratorRepository(rand);
+	        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
 	}
 
 	@Override
