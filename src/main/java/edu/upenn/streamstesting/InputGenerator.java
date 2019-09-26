@@ -8,6 +8,7 @@ import static java.util.Collections.*;
 
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 // Input generation
 import com.pholser.junit.quickcheck.generator.java.lang.IntegerGenerator;
@@ -57,8 +58,13 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 	ParameterSampler sampler;
 	GeneratorRepository genRepo;
 
+	// Needed to turn collection into datastream
+	StreamExecutionEnvironment env;
 	
-	public InputGenerator() {
+	public InputGenerator(StreamExecutionEnvironment env) {
+
+		this.env = env;
+		
 		// Instantiate source of randomness and generation status to call the generator
 	        randGen = new Random();
 	        rand = new SourceOfRandomness(randGen);
@@ -73,6 +79,9 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 		// call the sampler to decide the generator on a
 		// parameter.
 	        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
+
+		// Register my DataStreamGenerator
+		genRepo.register(new DataStreamGenerator(env));
 	}
 
 	@Override

@@ -16,7 +16,7 @@ public class InputGeneratorTest {
     public void testInputGenerator() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        InputGenerator gen = new InputGenerator();
+        InputGenerator gen = new InputGenerator(env);
 	
 	DataStream<Integer> ds = env.addSource(gen);
 
@@ -28,7 +28,9 @@ public class InputGeneratorTest {
     @Test
     public void testIntegerGenerator1() throws Exception {
 
-	    InputGenerator<Integer> inputGen = new InputGenerator();
+	    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+	    
+	    InputGenerator<Integer> inputGen = new InputGenerator(env);
 
 	    Class[] cArg = new Class[1];
 	    cArg[0] = Integer.class;
@@ -47,5 +49,37 @@ public class InputGeneratorTest {
 
     public Integer testInteger1(Integer param) {
 	    return param;
+    }
+
+    @Ignore
+    public void testDataStreamGenerator1() throws Exception {
+
+	    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+	    
+	    InputGenerator<DataStream<Integer>> inputGen = new InputGenerator(env);
+
+	    Class[] cArg = new Class[1];
+	    cArg[0] = DataStream.class;
+
+	    Method testMethod = getClass().getMethod("testDataStream1", cArg);
+
+	    Parameter parameter = testMethod.getParameters()[0];
+
+	    // The problem seems to be that the newInstance() calls
+	    // fails on the DataStream class. I suspect that this is
+	    // because DataStream can not be constructed with zero
+	    // arguments.
+	    //
+	    // TODO: Investigate
+	    Generator<DataStream<Integer>> generator =
+		    (Generator<DataStream<Integer>>) inputGen.parameterGenerator(parameter);
+	    DataStream<Integer> stream = inputGen.generate(generator);
+	    testDataStream1(stream);
+	    env.execute();
+    }
+
+
+    public void testDataStream1(DataStream<Integer> stream) throws Exception {
+	stream.print();
     }
 }
