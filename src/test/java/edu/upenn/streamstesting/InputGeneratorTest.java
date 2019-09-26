@@ -70,7 +70,8 @@ public class InputGeneratorTest {
 	    // because DataStream can not be constructed with zero
 	    // arguments.
 	    //
-	    // TODO: Investigate
+	    // TODO: Investigate how can we write custom generator for
+	    //       JUnit-Quickcheck
 	    Generator<DataStream<Integer>> generator =
 		    (Generator<DataStream<Integer>>) inputGen.parameterGenerator(parameter);
 	    DataStream<Integer> stream = inputGen.generate(generator);
