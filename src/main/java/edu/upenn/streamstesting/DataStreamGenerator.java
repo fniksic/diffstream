@@ -1,6 +1,9 @@
 package edu.upenn.streamstesting;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.stream.Stream;
+import java.util.Arrays;
 
 import com.pholser.junit.quickcheck.generator.*;
 import com.pholser.junit.quickcheck.internal.Lists;
@@ -13,7 +16,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 
-import java.util.Arrays;
 
 /**
  * Note: In order for the generator to be discovered by the framework,
@@ -35,8 +37,27 @@ public class DataStreamGenerator extends ComponentizedGenerator<DataStream>{
 			.valueOf(new Key<StreamExecutionEnvironment>("flink-env",
 								     StreamExecutionEnvironment.class))
 			.get();
+
+		// TODO: Allow configuring the DataStream Generator
+		// (e.g. it sizerange) similarly to the
+		// CollectionGenerator
+		int size = status.size();
+
+		Generator<?> generator = componentGenerators().get(0);
+		Stream<?> itemStream =
+			Stream.generate(() -> generator.generate(random, status))
+			.sequential();
+		// TODO: Allow configuring distinctness or some other
+		// configuration parameter of the generator that might
+		// be needed for better DataStreamGeneration
+		// if (distinct)
+		// 	itemStream = itemStream.distinct();
+		
+		ArrayList items = new ArrayList();
+		itemStream.limit(size).forEach(items::add);
 		// TODO: Make the generator really output a stream instead of just an element
-		return (env.fromCollection(Arrays.asList(componentGenerators().get(0).generate(random, status))));
+		// Old: Arrays.asList(componentGenerators().get(0).generate(random, status))
+		return (env.fromCollection(items));
 	}
 
 	@Override public int numberOfNeededComponents() {

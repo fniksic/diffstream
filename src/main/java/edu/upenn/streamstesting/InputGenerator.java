@@ -20,7 +20,6 @@ import com.pholser.junit.quickcheck.internal.GeometricDistribution;
 
 // Sampling parameters
 import com.pholser.junit.quickcheck.internal.ParameterSampler;
-// import com.pholser.junit.quickcheck.internal.sampling.ExhaustiveParameterSampler;
 import com.pholser.junit.quickcheck.internal.sampling.TupleParameterSampler;
 
 // Rest needed for input generation
@@ -38,6 +37,8 @@ import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.generator.ServiceLoaderGeneratorSource;
 import com.pholser.junit.quickcheck.generator.GenerationStatus;
 import com.pholser.junit.quickcheck.generator.GenerationStatus.Key;
+
+import edu.upenn.streamstesting.StreamGenerationStatus;
 
 // KK: We should probably extend this to be a checkpointable source
 //
@@ -69,7 +70,7 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 	        randGen = new Random();
 	        rand = new SourceOfRandomness(randGen);
 	        geo = new GeometricDistribution();
-	        status = new SimpleGenerationStatus(geo, rand, 0);
+	        status = new StreamGenerationStatus(geo, rand, 0);
 
 		// Save the environment in the status so that it can
 		// be accessed by the DataStream generator
@@ -82,6 +83,12 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 		// Initializing a generator repository so that I can
 		// call the sampler to decide the generator on a
 		// parameter.
+		//
+		// The service loader generator source finds all
+		// defined generators (i.e. those defined by the
+		// framework and those in the
+		// resources/META-INF/services/...Generator file) and
+		// loads them so that they can be used for deciding
 	        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
 	}
 
