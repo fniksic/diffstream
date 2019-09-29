@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Objects;
 import static java.util.Collections.*;
 
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -34,11 +36,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.internal.generator.ServiceLoaderGeneratorSource;
-
-// import org.quicktheories.generators.IntegersDSL;
-// import org.quicktheories.core.Gen;
-// import org.quicktheories.core.RandomnessSource;
-// import org.quicktheories.core.XOrShiftPRNG;
+import com.pholser.junit.quickcheck.generator.GenerationStatus;
+import com.pholser.junit.quickcheck.generator.GenerationStatus.Key;
 
 // KK: We should probably extend this to be a checkpointable source
 //
@@ -72,6 +71,10 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 	        geo = new GeometricDistribution();
 	        status = new SimpleGenerationStatus(geo, rand, 0);
 
+		// Save the environment in the status so that it can
+		// be accessed by the DataStream generator
+		status.setValue(new Key("flink-env", StreamExecutionEnvironment.class), env);
+		
 		// It seems that I have to initialize and call a
 		// parameter sampler
 	        sampler = new TupleParameterSampler(100); // 100 is the number of trials
@@ -80,11 +83,6 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 		// call the sampler to decide the generator on a
 		// parameter.
 	        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
-
-		// Register my DataStreamGenerator
-		//
-		// Note: I am not sure if this is needed
-		genRepo.register(new DataStreamGenerator());
 	}
 
 	@Override
@@ -148,13 +146,7 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 	public T generate(Generator<T> generator) {
 		return generator.generate(rand, status);
 	}
-	
-	@Test
-	public void testMethod(Integer input) {
-		return;
-	}
-
-	
+		
 	@Override
 	public void cancel() {
 		isRunning = false;

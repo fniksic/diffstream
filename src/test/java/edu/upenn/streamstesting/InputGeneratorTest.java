@@ -78,7 +78,7 @@ public class InputGeneratorTest {
 	    return param;
     }
 	
-    @Ignore
+    @Test
     public void testDataStreamGenerator1() throws Exception {
 
 	    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -92,19 +92,8 @@ public class InputGeneratorTest {
 
 	    Parameter parameter = testMethod.getParameters()[0];
 
-	    // The problem seems to be that the newInstance() calls
-	    // fails on the DataStream class. I suspect that this is
-	    // because DataStream can not be constructed with zero
-	    // arguments.
-	    //
-	    // TODO: Investigate how can we write custom generator for
-	    //       JUnit-Quickcheck
 	    Generator<DataStream<Integer>> generator =
 	    	    (Generator<DataStream<Integer>>) inputGen.parameterGenerator(parameter);
-	    // DataStreamGenerator generator =
-	    // 	    (DataStreamGenerator) inputGen.parameterGenerator(parameter);
-	    // generator.set_environment(env);
-	    // GeneratorRepository
 	    DataStream<Integer> stream = inputGen.generate(generator);
 	    testDataStream1(stream);
 	    env.execute();

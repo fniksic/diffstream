@@ -6,38 +6,37 @@ import com.pholser.junit.quickcheck.generator.*;
 import com.pholser.junit.quickcheck.internal.Lists;
 import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 import com.pholser.junit.quickcheck.generator.java.util.ArrayListGenerator;
+import com.pholser.junit.quickcheck.generator.GenerationStatus;
+import com.pholser.junit.quickcheck.generator.GenerationStatus.Key;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 
+import java.util.Arrays;
 
+/**
+ * Note: In order for the generator to be discovered by the framework,
+ * we need to add in in the resources/META-INF/services folder, in the
+ * Generator file.
+ */
 public class DataStreamGenerator extends ComponentizedGenerator<DataStream>{
 
-	private StreamExecutionEnvironment env;
-	private ArrayListGenerator superGen;
 	
         public DataStreamGenerator() {
 		super(DataStream.class);
-		
-		this.superGen = new ArrayListGenerator();
-		this.env = StreamExecutionEnvironment.getExecutionEnvironment();
-	}
-
-	// Note: This has to be always called before generate. THe
-	// problem is that I cannot give env in the constructor,
-	// because the infastructure requires that a generator has 0
-	// arguments.
-	public void set_environment(StreamExecutionEnvironment env) {
-		this.env = env;
 	}
 	
-        // @SuppressWarnings("unchecked")
         @Override public DataStream<?> generate(SourceOfRandomness random,
-				    GenerationStatus status) {
+						GenerationStatus status) {
 
-		// TODO: Check why the generate here fails :)
-	        return (env.fromCollection(superGen.generate(random, status)));
+		StreamExecutionEnvironment env =
+			status
+			.valueOf(new Key<StreamExecutionEnvironment>("flink-env",
+								     StreamExecutionEnvironment.class))
+			.get();
+		// TODO: Make the generator really output a stream instead of just an element
+		return (env.fromCollection(Arrays.asList(componentGenerators().get(0).generate(random, status))));
 	}
 
 	@Override public int numberOfNeededComponents() {
