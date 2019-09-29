@@ -63,6 +63,7 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 	
 	public InputGenerator(StreamExecutionEnvironment env) {
 
+		// TODO: Maybe remove that if not useful
 		this.env = env;
 		
 		// Instantiate source of randomness and generation status to call the generator
@@ -81,7 +82,9 @@ public class InputGenerator<T> implements SourceFunction<Integer> {
 	        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
 
 		// Register my DataStreamGenerator
-		genRepo.register(new DataStreamGenerator(env));
+		//
+		// Note: I am not sure if this is needed
+		genRepo.register(new DataStreamGenerator());
 	}
 
 	@Override

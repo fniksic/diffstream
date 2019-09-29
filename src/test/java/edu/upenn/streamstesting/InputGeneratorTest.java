@@ -8,6 +8,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import com.pholser.junit.quickcheck.generator.Generator;
 
+import java.util.ArrayList;
+
 import edu.upenn.streamstesting.InputGenerator;
 
 public class InputGeneratorTest {
@@ -25,11 +27,11 @@ public class InputGeneratorTest {
 	env.execute();
     }
 
+    // @Test
     @Test
     public void testIntegerGenerator1() throws Exception {
 
 	    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-	    
 	    InputGenerator<Integer> inputGen = new InputGenerator(env);
 
 	    Class[] cArg = new Class[1];
@@ -51,6 +53,31 @@ public class InputGeneratorTest {
 	    return param;
     }
 
+    @Test
+    public void testArrayListGenerator1() throws Exception {
+
+	    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+	    InputGenerator<ArrayList<Integer>> inputGen = new InputGenerator(env);
+
+	    Class[] cArg = new Class[1];
+	    cArg[0] = ArrayList.class;
+
+	    Method testMethod = getClass().getMethod("testArrayList1", cArg);
+
+	    Parameter parameter = testMethod.getParameters()[0];
+	    
+	    Generator<ArrayList<Integer>> generator =
+		    (Generator<ArrayList<Integer>>) inputGen.parameterGenerator(parameter);
+	    ArrayList<Integer> item = inputGen.generate(generator);
+	    ArrayList<Integer> output = testArrayList1(item);
+	    System.out.println(output);
+    }
+
+
+    public ArrayList<Integer> testArrayList1(ArrayList<Integer> param) {
+	    return param;
+    }
+	
     @Ignore
     public void testDataStreamGenerator1() throws Exception {
 
@@ -73,7 +100,11 @@ public class InputGeneratorTest {
 	    // TODO: Investigate how can we write custom generator for
 	    //       JUnit-Quickcheck
 	    Generator<DataStream<Integer>> generator =
-		    (Generator<DataStream<Integer>>) inputGen.parameterGenerator(parameter);
+	    	    (Generator<DataStream<Integer>>) inputGen.parameterGenerator(parameter);
+	    // DataStreamGenerator generator =
+	    // 	    (DataStreamGenerator) inputGen.parameterGenerator(parameter);
+	    // generator.set_environment(env);
+	    // GeneratorRepository
 	    DataStream<Integer> stream = inputGen.generate(generator);
 	    testDataStream1(stream);
 	    env.execute();

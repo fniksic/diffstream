@@ -17,17 +17,31 @@ public class DataStreamGenerator extends ComponentizedGenerator<DataStream>{
 	private StreamExecutionEnvironment env;
 	private ArrayListGenerator superGen;
 	
-        public DataStreamGenerator(StreamExecutionEnvironment env) {
+        public DataStreamGenerator() {
 		super(DataStream.class);
 		
-		this.env = env;
 		this.superGen = new ArrayListGenerator();
+		this.env = StreamExecutionEnvironment.getExecutionEnvironment();
+	}
+
+	// Note: This has to be always called before generate. THe
+	// problem is that I cannot give env in the constructor,
+	// because the infastructure requires that a generator has 0
+	// arguments.
+	public void set_environment(StreamExecutionEnvironment env) {
+		this.env = env;
 	}
 	
         // @SuppressWarnings("unchecked")
-        @Override public DataStream generate(SourceOfRandomness random,
+        @Override public DataStream<?> generate(SourceOfRandomness random,
 				    GenerationStatus status) {
 
+		// TODO: Check why the generate here fails :)
 	        return (env.fromCollection(superGen.generate(random, status)));
 	}
+
+	@Override public int numberOfNeededComponents() {
+            return 1;
+        }
+
 }
