@@ -1,5 +1,17 @@
 # streams-testing
 
+## Installing the flink-training-exercises package
+
+First run `mvn clean package` in flink-training-exercises.
+
+Then run
+
+```sh
+mvn install:install-file -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.0.jar -DpomFile=flink-training-exercises/pom.xml
+```
+
+in the top directory to install the flink-training-exercises jar locally so that maven can use it.
+
 
 ## Generating input
 
