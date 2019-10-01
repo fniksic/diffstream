@@ -116,4 +116,8 @@ public class Poset<T> implements Serializable {
         }
         return false;
     }
+
+    public boolean isEmpty() {
+        return elements.isEmpty();
+    }
 }

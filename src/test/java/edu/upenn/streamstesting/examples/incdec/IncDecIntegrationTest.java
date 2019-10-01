@@ -2,6 +2,8 @@ package edu.upenn.streamstesting.examples.incdec;
 
 import edu.upenn.streamstesting.Matcher;
 import edu.upenn.streamstesting.MatcherSink;
+import edu.upenn.streamstesting.utils.ConstantKeySelector;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -31,14 +33,18 @@ public class IncDecIntegrationTest {
 
         DataStream<IncDecItem> first = env.fromElements(IncDecItem.class,
                 new Dec(1), new Dec(2), new Hash(),
-                new Inc(3), new Inc(1), new Hash()
+                new Inc(3), new Inc(1), new Hash(), new Inc(2)
         );
         DataStream<IncDecItem> second = env.fromElements(IncDecItem.class,
                 new Dec(2), new Dec(1), new Hash(),
                 new Inc(1), new Inc(3), new Hash()
         );
 
-        first.connect(second).flatMap(new Matcher<>(new IncDecDependence())).setParallelism(1).addSink(sink);
+        first.connect(second)
+                .keyBy(new ConstantKeySelector<>(), new ConstantKeySelector<>())
+                .process(new Matcher<>(new IncDecDependence()))
+                .setParallelism(1)
+                .addSink(sink);
 
         env.execute();
 
