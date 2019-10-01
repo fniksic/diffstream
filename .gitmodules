@@ -1,3 +1,6 @@
 [submodule "junit-quickcheck"]
 	path = junit-quickcheck
 	url = git@github.com:angelhof/junit-quickcheck.git
+[submodule "flink-training-exercises"]
+	path = flink-training-exercises
+	url = git@github.com:angelhof/flink-training-exercises.git
