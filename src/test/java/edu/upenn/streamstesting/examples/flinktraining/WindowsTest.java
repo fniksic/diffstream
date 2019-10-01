@@ -72,57 +72,38 @@ public class WindowsTest {
     //@Ignore
     @Test
     public void testSumTipFiniteInput() throws Exception {
-	
-	
-	// This is for getting data from a file 
-	
-	// // read parameters
-	// ParameterTool params = ParameterTool.fromArgs(args);
-	// final String input = params.get("input", ExerciseBase.pathToFareData);
-	
-	// final int maxEventDelay = 60;       // events are out of order by max 60 seconds
-	// final int servingSpeedFactor = 600; // events of 10 minutes are served in 1 second
-	
-	// // set up streaming execution environment
-	// StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-	// env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-	// env.setParallelism(ExerciseBase.parallelism);
-	
-	// // start the data generator
-	// DataStream<TaxiFare> fares =
-	// 	    env.addSource(fareSourceOrTest(new TaxiFareSource(input, maxEventDelay, servingSpeedFactor)));
 
-	StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        MatcherSink sink = new MatcherSink();
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+			MatcherSink sink = new MatcherSink();
 	
-	TaxiFare oneFor1In1 = testFare(1, t(0), 1.0F);
-	TaxiFare fiveFor1In1 = testFare(1, t(15), 5.0F);
-	TaxiFare tenFor1In2 = testFare(1, t(90), 10.0F);
-	TaxiFare twentyFor2In2 = testFare(2, t(90), 20.0F);
+		TaxiFare oneFor1In1 = testFare(1, t(0), 1.0F);
+		TaxiFare fiveFor1In1 = testFare(1, t(15), 5.0F);
+		TaxiFare tenFor1In2 = testFare(1, t(90), 10.0F);
+		TaxiFare twentyFor2In2 = testFare(2, t(90), 20.0F);
 
 
-	DataStream<TaxiFare> input = env.fromElements(
-		TaxiFare.class,
-		oneFor1In1,
-		fiveFor1In1,
-		tenFor1In2,
-		twentyFor2In2);
-		
-	DataStream<Tuple3<Long, Long, Float>> correctOutput =
-	    correctImplementation(input);
+		DataStream<TaxiFare> input = env.fromElements(
+			TaxiFare.class,
+			oneFor1In1,
+			fiveFor1In1,
+			tenFor1In2,
+			twentyFor2In2);
 
-	DataStream<Tuple3<Long, Long, Float>> wrongOutput =
-	    wrongImplementation(input);
+		DataStream<Tuple3<Long, Long, Float>> correctOutput =
+			correctImplementation(input);
 
-        correctOutput.connect(wrongOutput)
-	    .keyBy(new ConstantKeySelector<>(), new ConstantKeySelector<>())
-	    .process(new Matcher<>(new FullDependence<Tuple3<Long, Long, Float>>()))
-	    .setParallelism(1)
-	    .addSink(sink);
+		DataStream<Tuple3<Long, Long, Float>> wrongOutput =
+			wrongImplementation(input);
 
-        env.execute();
+			correctOutput.connect(wrongOutput)
+			.keyBy(new ConstantKeySelector<>(), new ConstantKeySelector<>())
+			.process(new Matcher<>(new FullDependence<Tuple3<Long, Long, Float>>()))
+			.setParallelism(1)
+			.addSink(sink);
 
-        assertTrue("The two implementations should be equivalent", sink.equalsTrue());
+		env.execute();
+
+		assertTrue("The two implementations should be equivalent", sink.equalsTrue());
     }
 
     @Ignore
