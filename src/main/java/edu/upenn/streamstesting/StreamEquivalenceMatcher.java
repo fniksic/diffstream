@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class SinkBasedMatcher<IN> {
+public class StreamEquivalenceMatcher<IN> {
 
     /* We maintain a static pool of matchers to deal with the serialization issues in Flink.
        Namely, sinks in Flink need to be serializable, so they cannot have an explicit, baked in
@@ -15,16 +15,16 @@ public class SinkBasedMatcher<IN> {
      */
 
     private static final AtomicLong matcherCount = new AtomicLong(0L);
-    private static final ConcurrentMap<Long, SinkBasedMatcher<?>> matcherPool = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Long, StreamEquivalenceMatcher<?>> matcherPool = new ConcurrentHashMap<>();
 
-    public static <IN> SinkBasedMatcher<IN> createMatcher(Dependence<IN> dependence) {
-        SinkBasedMatcher<IN> matcher = new SinkBasedMatcher<>(dependence);
+    public static <IN> StreamEquivalenceMatcher<IN> createMatcher(Dependence<IN> dependence) {
+        StreamEquivalenceMatcher<IN> matcher = new StreamEquivalenceMatcher<>(dependence);
         matcherPool.put(matcher.getId(), matcher);
         return matcher;
     }
 
-    public static <IN> SinkBasedMatcher<IN> getMatcherById(long matcherId) {
-        return (SinkBasedMatcher<IN>) matcherPool.get(matcherId);
+    public static <IN> StreamEquivalenceMatcher<IN> getMatcherById(long matcherId) {
+        return (StreamEquivalenceMatcher<IN>) matcherPool.get(matcherId);
     }
 
     public static void destroyMatcher(long matcherId) {
@@ -33,31 +33,31 @@ public class SinkBasedMatcher<IN> {
 
     private final long id;
 
-    private final SinkBasedMatcherSink sinkLeft;
+    private final StreamEquivalenceSink sinkLeft;
     private final Poset<IN> unmatchedItemsLeft;
 
-    private final SinkBasedMatcherSink sinkRight;
+    private final StreamEquivalenceSink sinkRight;
     private final Poset<IN> unmatchedItemsRight;
 
     private boolean detectedNonEquivalence = false;
 
-    private SinkBasedMatcher(Dependence<IN> dependence) {
+    private StreamEquivalenceMatcher(Dependence<IN> dependence) {
         this.id = matcherCount.incrementAndGet();
         this.unmatchedItemsLeft = new Poset<>(dependence);
         this.unmatchedItemsRight = new Poset<>(dependence);
-        this.sinkLeft = new SinkBasedMatcherSink(this.id, true);
-        this.sinkRight = new SinkBasedMatcherSink(this.id, false);
+        this.sinkLeft = new StreamEquivalenceSink(this.id, true);
+        this.sinkRight = new StreamEquivalenceSink(this.id, false);
     }
 
     public long getId() {
         return id;
     }
 
-    public SinkBasedMatcherSink getSinkLeft() {
+    public StreamEquivalenceSink getSinkLeft() {
         return sinkLeft;
     }
 
-    public SinkBasedMatcherSink getSinkRight() {
+    public StreamEquivalenceSink getSinkRight() {
         return sinkRight;
     }
 

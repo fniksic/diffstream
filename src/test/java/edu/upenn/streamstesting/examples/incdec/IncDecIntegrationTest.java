@@ -1,6 +1,6 @@
 package edu.upenn.streamstesting.examples.incdec;
 
-import edu.upenn.streamstesting.SinkBasedMatcher;
+import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -36,7 +36,7 @@ public class IncDecIntegrationTest {
                 new Inc(1), new Inc(3), new Hash()
         );
 
-        SinkBasedMatcher<IncDecItem> matcher = SinkBasedMatcher.createMatcher(new IncDecDependence());
+        StreamEquivalenceMatcher<IncDecItem> matcher = StreamEquivalenceMatcher.createMatcher(new IncDecDependence());
         first.addSink(matcher.getSinkLeft()).setParallelism(1);
         second.addSink(matcher.getSinkRight()).setParallelism(1);
 
@@ -54,13 +54,13 @@ public class IncDecIntegrationTest {
         DataStream<IncDecItem> first = env.fromElements(IncDecItem.class,
                 new Dec(1), new Dec(2), new Hash(),
                 new Inc(3), new Inc(1), new Hash()
-        );
+        ).setParallelism(1);
         DataStream<IncDecItem> second = env.fromElements(IncDecItem.class,
                 new Dec(2), new Dec(1), new Hash(),
                 new Inc(1), new Inc(3), new Hash()
-        );
+        ).setParallelism(1);
 
-        SinkBasedMatcher<IncDecItem> matcher = SinkBasedMatcher.createMatcher(new IncDecDependence());
+        StreamEquivalenceMatcher<IncDecItem> matcher = StreamEquivalenceMatcher.createMatcher(new IncDecDependence());
         first.addSink(matcher.getSinkLeft()).setParallelism(1);
         second.addSink(matcher.getSinkRight()).setParallelism(1);
 

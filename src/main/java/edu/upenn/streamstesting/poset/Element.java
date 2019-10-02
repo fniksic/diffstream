@@ -1,19 +1,14 @@
 package edu.upenn.streamstesting.poset;
 
-import java.io.Serializable;
 import java.util.*;
 
-public class Element<T> implements Serializable {
-
-    private static final long serialVersionUID = -8055663431369116923L;
+public class Element<T> {
 
     private T value;
 
     private List<Element<T>> immediateSuccessors = new ArrayList<>();
 
     private List<Element<T>> immediatePredecessors = new LinkedList<>();
-
-    public Element() {}
 
     public Element(T value) {
         this.value = value;
@@ -29,18 +24,6 @@ public class Element<T> implements Serializable {
 
     public List<Element<T>> getImmediatePredecessors() {
         return immediatePredecessors;
-    }
-
-    public void setValue(T value) {
-        this.value = value;
-    }
-
-    public void setImmediateSuccessors(List<Element<T>> immediateSuccessors) {
-        this.immediateSuccessors = immediateSuccessors;
-    }
-
-    public void setImmediatePredecessors(List<Element<T>> immediatePredecessors) {
-        this.immediatePredecessors = immediatePredecessors;
     }
 
     public void addImmediateSuccessor(Element<T> element) {

@@ -2,12 +2,12 @@ package edu.upenn.streamstesting.poset;
 
 import edu.upenn.streamstesting.Dependence;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-public class Poset<T> implements Serializable {
-
-    private static final long serialVersionUID = 7551413373199579867L;
+public class Poset<T> {
 
     private Dependence<T> dependence;
 
@@ -15,34 +15,8 @@ public class Poset<T> implements Serializable {
 
     private Deque<Element<T>> elements = new LinkedList<>();
 
-    public Poset() {}
-
     public Poset(Dependence<T> dependence) {
         this.dependence = dependence;
-    }
-
-    public Dependence<T> getDependence() {
-        return dependence;
-    }
-
-    public void setDependence(Dependence<T> dependence) {
-        this.dependence = dependence;
-    }
-
-    public List<Element<T>> getMinimalElements() {
-        return minimalElements;
-    }
-
-    public void setMinimalElements(List<Element<T>> minimalElements) {
-        this.minimalElements = minimalElements;
-    }
-
-    public Deque<Element<T>> getElements() {
-        return elements;
-    }
-
-    public void setElements(Deque<Element<T>> elements) {
-        this.elements = elements;
     }
 
     public Element<T> allocateElement(T value) {

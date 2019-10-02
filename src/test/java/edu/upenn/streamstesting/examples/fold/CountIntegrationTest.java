@@ -1,7 +1,7 @@
 package edu.upenn.streamstesting.examples.fold;
 
 import edu.upenn.streamstesting.EmptyDependence;
-import edu.upenn.streamstesting.SinkBasedMatcher;
+import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
@@ -51,7 +51,7 @@ public class CountIntegrationTest {
 
         DataStream<Long> correctOutput = env.fromElements(numElements);
 
-        SinkBasedMatcher<Long> matcher = SinkBasedMatcher.createMatcher(new EmptyDependence<>());
+        StreamEquivalenceMatcher<Long> matcher = StreamEquivalenceMatcher.createMatcher(new EmptyDependence<>());
         output.addSink(matcher.getSinkLeft());
         correctOutput.addSink(matcher.getSinkRight());
 
