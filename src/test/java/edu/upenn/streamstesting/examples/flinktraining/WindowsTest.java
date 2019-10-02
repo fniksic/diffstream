@@ -3,7 +3,7 @@ package edu.upenn.streamstesting.examples.flinktraining;
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.ververica.flinktraining.solutions.datastream_java.windows.HourlyTipsSolution;
 import edu.upenn.streamstesting.FullDependence;
-import edu.upenn.streamstesting.SinkBasedMatcher;
+import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -97,7 +97,7 @@ public class WindowsTest {
 		DataStream<Tuple3<Long, Long, Float>> wrongOutput =
 			wrongImplementation(input);
 
-		SinkBasedMatcher<Tuple3<Long, Long, Float>> matcher = SinkBasedMatcher.createMatcher(new FullDependence<>());
+		StreamEquivalenceMatcher<Tuple3<Long, Long, Float>> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
 		correctOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
 		wrongOutput.addSink(matcher.getSinkRight()).setParallelism(1);
 
