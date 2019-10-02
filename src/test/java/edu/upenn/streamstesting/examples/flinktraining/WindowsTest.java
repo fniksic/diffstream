@@ -1,34 +1,25 @@
 package edu.upenn.streamstesting.examples.flinktraining;
 
-import edu.upenn.streamstesting.Matcher;
-import edu.upenn.streamstesting.MatcherSink;
-import edu.upenn.streamstesting.SinkBasedMatcher;
-import edu.upenn.streamstesting.utils.ConstantKeySelector;
+import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
+import com.ververica.flinktraining.solutions.datastream_java.windows.HourlyTipsSolution;
 import edu.upenn.streamstesting.FullDependence;
-import org.apache.flink.api.java.functions.KeySelector;
+import edu.upenn.streamstesting.SinkBasedMatcher;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-
-
-import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
-import com.ververica.flinktraining.solutions.datastream_java.windows.HourlyTipsSolution;
-import com.google.common.collect.Lists;
-import org.apache.flink.api.java.tuple.Tuple3;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import com.ververica.flinktraining.solutions.datastream_java.windows.HourlyTipsSolution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import static org.junit.Assert.assertFalse;
 
