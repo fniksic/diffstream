@@ -153,6 +153,12 @@ under the License.
             <artifactId>flink-training-exercises</artifactId>
             <version>${ververica.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.data-artisans</groupId>
+            <artifactId>flink-training-exercises</artifactId>
+            <version>${ververica.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
