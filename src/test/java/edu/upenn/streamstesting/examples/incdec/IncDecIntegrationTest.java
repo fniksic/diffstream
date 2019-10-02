@@ -30,11 +30,11 @@ public class IncDecIntegrationTest {
         DataStream<IncDecItem> first = env.fromElements(IncDecItem.class,
                 new Dec(1), new Dec(2), new Hash(),
                 new Inc(3), new Inc(1), new Hash(), new Inc(2)
-        );
+        ).setParallelism(1);
         DataStream<IncDecItem> second = env.fromElements(IncDecItem.class,
                 new Dec(2), new Dec(1), new Hash(),
                 new Inc(1), new Inc(3), new Hash()
-        );
+        ).setParallelism(1);
 
         StreamEquivalenceMatcher<IncDecItem> matcher = StreamEquivalenceMatcher.createMatcher(new IncDecDependence());
         first.addSink(matcher.getSinkLeft()).setParallelism(1);
