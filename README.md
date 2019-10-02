@@ -2,16 +2,17 @@
 
 ## Installing the flink-training-exercises package
 
-First run `mvn clean package` in flink-training-exercises.
-
-Then run
+First run `git submodule init` and `git submodule update` in `flink-training-exercises` to obtain the source code.
+Then build the code by running `mvn clean package`. Finally, install the package in the local Maven repository by
+executing the following command in the top directory.
 
 ```sh
-mvn install:install-file -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.0.jar -DpomFile=flink-training-exercises/pom.xml
+mvn install:install-file \
+    -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.0.jar \
+    -DpomFile=flink-training-exercises/pom.xml \
+    -Dsources=flink-training-exercises/target/flink-training-exercises-2.9.0-sources.jar \
+    -Djavadoc=flink-training-exercises/target/flink-training-exercises-2.9.0-javadoc.jar
 ```
-
-in the top directory to install the flink-training-exercises jar locally so that maven can use it.
-
 
 ## Generating input
 
