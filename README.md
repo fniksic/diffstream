@@ -26,7 +26,7 @@ I gathered some Flink examples that I could find with a search on
 Github. For now I just put the links here, but at some point we can
 look deeper in them if needed.
 
-- (100 stars) Example of monitoring data center temperatures: https://github.com/tillrohrmann/cep-monitoring
+- (100 stars) Example of monitoring data center temperatures: https://github.com/tillrohrmann/cep-monitoring It is about monitoring the temperatures of different racks (in a datacenter) and producing warnings and alerts for each rack. It seems to me that the alerts and warnings for each rack are fully dependent per rack. What kind of bug could we uncover in this situation?
 
 - (80 stars) Examples from O'Reilly's "Stream processing with Apache Flink": https://github.com/streaming-with-flink/examples-scala
 
