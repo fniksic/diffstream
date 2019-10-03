@@ -38,7 +38,16 @@ look deeper in them if needed.
 
 - Flink-examples with side output: https://github.com/apache/flink/blob/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples/sideoutput/SideOutputExample.java. Maybe the way to have a non-trivial output dependency relation would be by also considering side outputs in the testing process. However, usually it seems that Flink developers use side-outputs for discarding invalid data items. Can we find a usage of side-outputs where they output real data items?
 
+- All the flink-streaming examples: https://github.com/apache/flink/tree/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples. It would be amazing if we manage to find a bug in them (though I doubt it).
+
 ## TODO
+
+- We could have a testing mode where our framework (given a program),
+  creates two configurations, one with aprallelism 1 everywhere, and
+  one where parallelism is the highest (or ranges) up to some user
+  given bound for all (or some nodes). This would allow a user that is
+  want to deploy a flink program to feel more confident with using
+  parallelism.
 
 - The generator should also create timestamps (if an application talks
   about event time). In that case, we should also be able to configure
