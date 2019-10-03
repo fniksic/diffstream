@@ -39,6 +39,16 @@ look deeper in them if needed.
 - Flink-examples with side output: https://github.com/apache/flink/blob/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples/sideoutput/SideOutputExample.java. Maybe the way to have a non-trivial output dependency relation would be by also considering side outputs in the testing process. However, usually it seems that Flink developers use side-outputs for discarding invalid data items. Can we find a usage of side-outputs where they output real data items?
 
 - All the flink-streaming examples: https://github.com/apache/flink/tree/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples. It would be amazing if we manage to find a bug in them (though I doubt it).
+  + The iterative examples seems to be just maps, so I don't think
+    that we can uncover some error there.
+  + The windowed join example seems to be a non-trivial computation
+    and I am wondering whether increasing parallelism could alter the
+    results
+  + The incremental learning skeleton is a skeleton for incremental
+    machine learning tasks, where one has a partial model built from
+    historical data, and updates it everytime new data arrive. There
+    is no real computation happening in this one however. It is just a
+    skeleton.
 
 ## TODO
 
