@@ -36,6 +36,8 @@ look deeper in them if needed.
 
 - (452 stars) Yahoo streaming benchmarks. This seems like a pretty complex computation. https://github.com/yahoo/streaming-benchmarks. This is very interesting. On the first sight, it seems that everything is a map. But the map functions are rich flat maps, which have access to some other datastore, where they __both__ write and read. I am not sure if these read and write are in independent locations, but we should certainly try to include this in our evaluation. However, we will need to find a way to interface with it, because it doesn't have a sink, but rather events are written to some other data store at the end of the datastream.
 
+- Flink-examples with side output: https://github.com/apache/flink/blob/master/flink-examples/flink-examples-streaming/src/main/java/org/apache/flink/streaming/examples/sideoutput/SideOutputExample.java. Maybe the way to have a non-trivial output dependency relation would be by also considering side outputs in the testing process. However, usually it seems that Flink developers use side-outputs for discarding invalid data items. Can we find a usage of side-outputs where they output real data items?
+
 ## TODO
 
 - The generator should also create timestamps (if an application talks
