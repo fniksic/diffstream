@@ -34,7 +34,7 @@ look deeper in them if needed.
 
 - (129 stars) A big data application. It includes a part in Flink (I don't know if that is interesting on its own) but it interfaces with Kafka and other so this might be a bit annoying to integrate for our evaluation. https://github.com/Chabane/bigdata-playgroun
 
-- (452 stars) Yahoo streaming benchmarks. This seems like a pretty complex computation. https://github.com/yahoo/streaming-benchmarks
+- (452 stars) Yahoo streaming benchmarks. This seems like a pretty complex computation. https://github.com/yahoo/streaming-benchmarks. This is very interesting. On the first sight, it seems that everything is a map. But the map functions are rich flat maps, which have access to some other datastore, where they __both__ write and read. I am not sure if these read and write are in independent locations, but we should certainly try to include this in our evaluation. However, we will need to find a way to interface with it, because it doesn't have a sink, but rather events are written to some other data store at the end of the datastream.
 
 ## TODO
 
