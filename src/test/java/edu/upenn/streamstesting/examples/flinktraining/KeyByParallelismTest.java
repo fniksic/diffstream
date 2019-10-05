@@ -1,7 +1,9 @@
 package edu.upenn.streamstesting.examples.flinktraining;
 
+import com.pholser.junit.quickcheck.generator.Generator;
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import edu.upenn.streamstesting.FullDependence;
+import edu.upenn.streamstesting.InputGenerator;
 import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -16,6 +18,9 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 import static org.junit.Assert.assertFalse;
 
@@ -61,7 +66,29 @@ public class KeyByParallelismTest {
         return positionsByTaxi;
     }
 
-    //@Ignore
+    // TODO: Make this more streamlined
+    public DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> generateInput(StreamExecutionEnvironment env)
+            throws NoSuchMethodException {
+
+        InputGenerator<DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>>> inputGen =
+                new InputGenerator(env);
+
+        Class[] cArg = new Class[1];
+        cArg[0] = DataStream.class;
+
+        Method testMethod = getClass().getMethod("sequentialComputation", DataStream.class);
+
+        Parameter parameter = testMethod.getParameters()[0];
+
+        Generator<DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>>> generator =
+                (Generator<DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>>>) inputGen.parameterGenerator(parameter);
+        DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> stream = inputGen.generate(generator);
+
+        return stream;
+    }
+
+
+
     @Test
     public void testPositionsByKey() throws Exception {
 
@@ -91,13 +118,40 @@ public class KeyByParallelismTest {
         seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
         parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
 
-//        output.print();
-
         env.execute();
 
         assertFalse("The two implementations should be equivalent", matcher.streamsAreEquivalent());
 
     }
 
+    @Test
+    public void testPositionsByKeyInputGenerator() throws Exception {
+
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+//        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+
+
+        DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
+
+        input.print();
+
+        KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
+        KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
+
+        // TODO: Make an input generator that generates keys from a specific range for one of the fields
+
+        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
+        seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
+        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
+
+//        output.print();
+
+        env.execute();
+
+        // TODO: Make the following fail more. This could be achieved by generating keys from only a specific range instead
+        //       of for the whole Long range, so that there is a higher chance of conflict.
+        // This doesn't always fail yet.
+        assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
+    }
 
 }
