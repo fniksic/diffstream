@@ -1,1 +1,3 @@
 edu.upenn.streamstesting.DataStreamGenerator
+edu.upenn.streamstesting.Tuple2Generator
+edu.upenn.streamstesting.Tuple3Generator
