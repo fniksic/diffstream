@@ -1,4 +1,4 @@
-package edu.upenn.streamstesting;
+package edu.upenn.streamstesting.generators;
 
 
 import com.pholser.junit.quickcheck.generator.ComponentizedGenerator;
