@@ -128,7 +128,6 @@ public class KeyByParallelismTest {
     public void testPositionsByKeyInputGenerator() throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-//        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
 
@@ -158,9 +157,6 @@ public class KeyByParallelismTest {
 
         env.execute();
 
-        // TODO: Make the following fail more. This could be achieved by generating keys from only a specific range instead
-        //       of for the whole Long range, so that there is a higher chance of conflict.
-        // This doesn't always fail yet.
         assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
     }
 
