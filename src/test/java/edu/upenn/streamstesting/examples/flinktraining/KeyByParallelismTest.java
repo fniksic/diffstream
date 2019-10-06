@@ -1,6 +1,7 @@
 package edu.upenn.streamstesting.examples.flinktraining;
 
 import com.pholser.junit.quickcheck.generator.Generator;
+import com.pholser.junit.quickcheck.generator.InRange;
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import edu.upenn.streamstesting.FullDependence;
 import edu.upenn.streamstesting.InputGenerator;
@@ -37,7 +38,7 @@ public class KeyByParallelismTest {
                             .build());
 
     public KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple>
-    sequentialComputation(DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> events) {
+    sequentialComputation(DataStream<Tuple3<@InRange(minLong = 0L, maxLong = 10L) Long, Tuple2<Long, Long>, Integer>> events) {
 
         // The input is supposed to be taxiId, position, and metadata.
 
@@ -70,6 +71,8 @@ public class KeyByParallelismTest {
     public DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> generateInput(StreamExecutionEnvironment env)
             throws NoSuchMethodException {
 
+        // Note: All of the lines until the call to the parameterGenerator method, can be circumvented
+        // if one knows exactly which generator they want. Then, they can just initialize it.
         InputGenerator<DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>>> inputGen =
                 new InputGenerator(env);
 
@@ -111,9 +114,6 @@ public class KeyByParallelismTest {
 
         // TODO: How can I make the sequential computation really be sequential?
 
-        // TODO: Call the input generator instead of giving input by hand. In this case it fails
-        //       even if given input by hand, but I have to make the generator work.
-
         StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
         seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
         parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
@@ -130,7 +130,6 @@ public class KeyByParallelismTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 //        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-
         DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
 
         input.print();
@@ -139,6 +138,17 @@ public class KeyByParallelismTest {
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
 
         // TODO: Make an input generator that generates keys from a specific range for one of the fields
+
+        // Ideal interface for user: A way to specify for which field (or tuple element) of the items of the data stream
+        // should the program only generate events inrange. I don't want all the internal components to generate events
+        // in a specific range.
+        //
+        // Note: At the moment I am doing it with InRange annotation on the test itself. That is clearly not the best
+        //       way to do that.
+        //
+        // Question: How can one specify what is the exact field for which to generate items in range, rather than
+        //           arbitrary longs.
+
 
         StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
         seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
