@@ -213,27 +213,22 @@ public class KeyByParallelismTest {
 
         input.print();
 
-        // TODO: In my opinion, we should contrast differential testing with unit and integration testing.
+        // Note: In my opinion, we should contrast differential testing with unit and integration testing.
         //       So here we should have both the case where the user predicts the possible output,
         //       making a matcher that checks the correct output against that, and (maybe) also a case
         //       where the user writes a sequential and a parallel computation and compares them.
         //
-        // TODO: In the case of manual integration/unit testing, one cannot even use a random generator,
+        // Note: In the case of manual integration/unit testing, one cannot even use a random generator,
         //       because they would have to make the output by hand.
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
 
-        // TODO: Implement a matcher that keeps a map from keys to sequences for each output, and then compares those, by
-        //       adding, and removing elements in the lists based on their keys.
-
-        seqOutput.addSink(new KeyByParallelismManualSink(true)).setParallelism(1);
-        parallelOutput.addSink(new KeyByParallelismManualSink(false)).setParallelism(1);
-
-//        output.print();
+        seqOutput.addSink(new KeyByParallelismManualSink(true, false)).setParallelism(1);
+        parallelOutput.addSink(new KeyByParallelismManualSink(false, false)).setParallelism(1);
 
         env.execute();
 
-        assertTrue("The two implementations should have unmatched items :)", KeyByParallelismManualMatcher.allMatched());
+        assertFalse("The two implementations should have unmatched items :)", KeyByParallelismManualMatcher.allMatched());
     }
 
 }

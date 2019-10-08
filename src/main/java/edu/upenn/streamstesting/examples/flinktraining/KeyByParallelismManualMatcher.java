@@ -19,6 +19,14 @@ public class KeyByParallelismManualMatcher {
 
     private static final Object lock = new Object();
 
+    public static void newLeftOutputOnline(Tuple2<Long, Tuple2<Long, Long>> item) {
+        newLeftOutput(item);
+
+        // Check and remove the prefix of output items for this key
+        Long key = item.f0;
+        cleanUpPrefixes(key);
+    }
+
     public static void newLeftOutput(Tuple2<Long, Tuple2<Long, Long>> item) {
         Long key = item.f0;
         // Add the new item in the map
@@ -27,8 +35,13 @@ public class KeyByParallelismManualMatcher {
             oldItems.add(item);
             leftOutput.put(key, oldItems);
         }
+    }
+
+    public static void newRightOutputOnline(Tuple2<Long, Tuple2<Long, Long>> item) {
+        newRightOutput(item);
 
         // Check and remove the prefix of output items for this key
+        Long key = item.f0;
         cleanUpPrefixes(key);
     }
 
@@ -40,9 +53,6 @@ public class KeyByParallelismManualMatcher {
             oldItems.add(item);
             rightOutput.put(key, oldItems);
         }
-
-        // Check and remove the prefix of output items for this key
-        cleanUpPrefixes(key);
     }
 
     public static void cleanUpPrefixes(Long key) {
@@ -68,10 +78,16 @@ public class KeyByParallelismManualMatcher {
         }
     }
 
-    // TODO: Testing for equality instead of removing in an online setting
-
     // TODO: This function checks if there are any unmatched and then reinitializes the hashes.
     public static boolean allMatched() {
-        return true;
+        boolean areAllMatched = false;
+        synchronized (lock) {
+//            System.out.println(leftOutput);
+//            System.out.println(rightOutput);
+            areAllMatched = leftOutput.equals(rightOutput);
+            leftOutput.clear();
+            rightOutput.clear();
+        }
+        return areAllMatched;
     }
 }

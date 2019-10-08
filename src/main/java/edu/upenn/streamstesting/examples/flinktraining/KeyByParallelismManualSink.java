@@ -7,19 +7,24 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
-class KeyByParallelismManualSink extends RichSinkFunction {
+class KeyByParallelismManualSink extends RichSinkFunction<Tuple2<Long, Tuple2<Long, Long>>> {
 
     private static final long serialVersionUID = 1L;
 
     /* Are we the left or the right sink? */
     private boolean left;
 
+    // If the sinks are initialized to be online, they call the online methods of the matcher,
+    // which clean up common prefixes while working
+    private boolean online;
+
     public KeyByParallelismManualSink() {
 
     }
 
-    public KeyByParallelismManualSink(boolean left) {
+    public KeyByParallelismManualSink(boolean left, boolean online) {
         this.left = left;
+        this.online = online;
     }
 
     public boolean isLeft() {
@@ -30,11 +35,28 @@ class KeyByParallelismManualSink extends RichSinkFunction {
         this.left = left;
     }
 
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    @Override
     public void invoke(Tuple2<Long, Tuple2<Long, Long>> item, Context context) throws Exception {
         if(isLeft()) {
-            KeyByParallelismManualMatcher.newLeftOutput(item);
+            if(isOnline()) {
+                KeyByParallelismManualMatcher.newLeftOutputOnline(item);
+            } else {
+                KeyByParallelismManualMatcher.newLeftOutput(item);
+            }
         } else {
-            KeyByParallelismManualMatcher.newRightOutput(item);
+            if(isOnline()) {
+                KeyByParallelismManualMatcher.newRightOutputOnline(item);
+            } else {
+                KeyByParallelismManualMatcher.newRightOutput(item);
+            }
         }
     }
 }
