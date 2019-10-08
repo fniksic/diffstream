@@ -103,7 +103,7 @@ public class WindowsTest {
 
 		env.execute();
 
-		assertFalse("The two implementations should be equivalent", matcher.streamsAreEquivalent());
+		matcher.assertStreamsAreEquivalent();
 
     }
 

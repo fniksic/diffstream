@@ -73,20 +73,23 @@ public class StreamEquivalenceMatcher<IN> {
         return detectedNonEquivalence;
     }
 
-    public void setDetectedNonEquivalence() {
+    public void setDetectedNonEquivalence() throws StreamsNotEquivalentException {
         this.detectedNonEquivalence = true;
+        throw new StreamsNotEquivalentException();
     }
 
     /**
-     * Returns {@code true} if the equivalence of the two streams has not already been disproved and
-     * there are no remaining unmatched items.
+     * Succeeds if the equivalence of the two streams has not already been disproved and
+     * there are no remaining unmatched items. Otherwise throws {@link StreamsNotEquivalentException}.
      *
      * <p>As a side effect, this method removes the current matcher from the static pool of matchers.</p>
      *
-     * @return
+     * @throws StreamsNotEquivalentException If the streams are not equivalent
      */
-    public boolean streamsAreEquivalent() {
+    public void assertStreamsAreEquivalent() throws StreamsNotEquivalentException {
         destroyMatcher(id);
-        return !detectedNonEquivalence && unmatchedItemsLeft.isEmpty() && unmatchedItemsRight.isEmpty();
+        if (detectedNonEquivalence || !unmatchedItemsLeft.isEmpty() || !unmatchedItemsRight.isEmpty()) {
+            throw new StreamsNotEquivalentException();
+        }
     }
 }

@@ -27,7 +27,6 @@ public class InputGeneratorTest {
 	env.execute();
     }
 
-    // @Test
     @Test
     public void testIntegerGenerator1() throws Exception {
 
