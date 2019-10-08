@@ -2,17 +2,15 @@ package edu.upenn.streamstesting.examples.flinktraining;
 
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.InRange;
-import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
-import edu.upenn.streamstesting.FullDependence;
 import edu.upenn.streamstesting.InputGenerator;
 import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.junit.ClassRule;
@@ -23,7 +21,20 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
+
+
+// Open ended questions and TODOs
+
+// TODO: Is it possible to modify parallelism of the operators programmaticaly?
+//       Find the operators in the pipeline and set their parallelism to 1 or 2
+
+// TODO: How can I make the sequential computation really be sequential?
+
+// TODO: In order to have a proper story for continuous safe upgrade, we need to think about the debugging output
+//       that the matcher outputs whenever equivalence is not true. After we think about this, we should implement
+//       and write about it somewhere in the paper too, as it is part of the story.
 
 public class KeyByParallelismTest {
 
@@ -43,10 +54,13 @@ public class KeyByParallelismTest {
         // The input is supposed to be taxiId, position, and metadata.
 
         // We first project the position and taxiId
-        DataStream<Tuple2<Long, Tuple2<Long, Long>>> positions = events.project(0, 1);
+        SingleOutputStreamOperator<Tuple2<Long, Tuple2<Long, Long>>> positions = events.project(0, 1);
+        positions.setParallelism(1);
 
         // Then we keyBy TaxiId
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> positionsByTaxi = positions.keyBy(0);
+
+        // TODO: Would it be possible to also setParallelism(1) here?
 
         // Then we Probe
         return positionsByTaxi;
@@ -67,7 +81,20 @@ public class KeyByParallelismTest {
         return positionsByTaxi;
     }
 
-    // TODO: Make this more streamlined. Discuss how to do this with Filip
+    public DataStream<Tuple2<Long, Tuple2<Long, Long>>>
+    correctParallelComputation(DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> events) {
+
+        // The input is supposed to be taxiId, position, and metadata.
+
+        KeyedStream<Tuple3<Long, Tuple2<Long, Long>, Integer>, Tuple> byTaxi = events.keyBy(0);
+
+        DataStream<Tuple2<Long, Tuple2<Long, Long>>> positionsByTaxi = byTaxi.project(0, 1);
+
+        // Then we Probe
+        return positionsByTaxi;
+    }
+
+    // TODO: Make this more streamlined. Discuss how to do this
     public DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> generateInput(StreamExecutionEnvironment env)
             throws NoSuchMethodException {
 
@@ -109,11 +136,6 @@ public class KeyByParallelismTest {
 
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
 
-        // TODO: Is it possible to modify parallelism of the operators programmaticaly?
-        //       Find the operators in the pipeline and set their parallelism to 1 or 2
-
-        // TODO: How can I make the sequential computation really be sequential?
-
         StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
         seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
         parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
@@ -129,6 +151,8 @@ public class KeyByParallelismTest {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+        // TODO: Set the parallelism of the source to 1 and the parallelism of the operators to 2 or more.
+        // TODO: In order to do this, we have to return a source instead of a datastream
         DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
 
         input.print();
@@ -153,18 +177,33 @@ public class KeyByParallelismTest {
         seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
         parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
 
-        // TODO: Make sure that the matcher is indeed replying in an online fashion, not waiting until it sees the end
-        //       of the stream.
+        env.execute();
 
-//        output.print();
+        assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
+    }
+
+    @Test
+    public void correctTestPositionsByKeyInputGenerator() throws Exception {
+
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
+
+        input.print();
+
+        KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
+        DataStream<Tuple2<Long, Tuple2<Long, Long>>> parallelOutput = correctParallelComputation(input);
+
+
+        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
+        seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
+        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
 
         env.execute();
 
-        // TODO: In order to have a proper story for continuous safe upgrade, we need to think about the debugging output
-        //       that the matcher outputs whenever equivalence is not true. After we think about this, we should implement
-        //       and write about it somewhere in the paper too, as it is part of the story.
-        assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
+        assertTrue("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
     }
+
 
     @Test
     public void manualTestPositionsByKey() throws Exception {
@@ -189,15 +228,14 @@ public class KeyByParallelismTest {
         // TODO: Implement a matcher that keeps a map from keys to sequences for each output, and then compares those, by
         //       adding, and removing elements in the lists based on their keys.
 
-        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
-        seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
-        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
+        seqOutput.addSink(new KeyByParallelismManualSink(true)).setParallelism(1);
+        parallelOutput.addSink(new KeyByParallelismManualSink(false)).setParallelism(1);
 
 //        output.print();
 
         env.execute();
 
-        assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
+        assertTrue("The two implementations should have unmatched items :)", KeyByParallelismManualMatcher.allMatched());
     }
 
 }
