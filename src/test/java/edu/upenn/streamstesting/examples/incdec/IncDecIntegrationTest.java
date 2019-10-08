@@ -21,7 +21,7 @@ public class IncDecIntegrationTest {
                             .setNumberTaskManagers(1)
                             .build());
 
-    @Test
+    @Test(expected = Exception.class)
     public void testIncDecNonEquivalent() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -42,7 +42,7 @@ public class IncDecIntegrationTest {
 
         env.execute();
 
-        assertFalse("The two IncDec data streams should NOT be equivalent", matcher.streamsAreEquivalent());
+        matcher.assertStreamsAreEquivalent();
     }
 
     @Test
@@ -66,6 +66,6 @@ public class IncDecIntegrationTest {
 
         env.execute();
 
-        assertTrue("The two IncDec data streams should be equivalent", matcher.streamsAreEquivalent());
+        matcher.assertStreamsAreEquivalent();
     }
 }

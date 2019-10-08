@@ -35,7 +35,6 @@ under the License.
         <junit.version>4.12</junit.version>
 		<ververica.version>2.9.0</ververica.version>
 		<junit-quickcheck.version>0.9</junit-quickcheck.version>
-        <quicktheories.version>0.26</quicktheories.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
@@ -140,11 +139,6 @@ under the License.
             <groupId>com.pholser</groupId>
             <artifactId>junit-quickcheck-generators</artifactId>
             <version>${junit-quickcheck.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.quicktheories</groupId>
-            <artifactId>quicktheories</artifactId>
-            <version>${quicktheories.version}</version>
         </dependency>
 
         <!-- Include Ververica examples -->

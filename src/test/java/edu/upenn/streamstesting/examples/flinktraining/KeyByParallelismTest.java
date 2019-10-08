@@ -142,11 +142,11 @@ public class KeyByParallelismTest {
 
         env.execute();
 
-        assertFalse("The two implementations should be equivalent", matcher.streamsAreEquivalent());
+        matcher.assertStreamsAreEquivalent();
 
     }
 
-    @Test
+    @Test(expected = Exception.class)
     public void testPositionsByKeyInputGenerator() throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -178,8 +178,6 @@ public class KeyByParallelismTest {
         parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
 
         env.execute();
-
-        assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
     }
 
     @Test
@@ -201,7 +199,7 @@ public class KeyByParallelismTest {
 
         env.execute();
 
-        assertTrue("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
+        matcher.assertStreamsAreEquivalent();
     }
 
 

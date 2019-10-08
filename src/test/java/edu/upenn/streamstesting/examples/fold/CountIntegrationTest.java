@@ -57,7 +57,7 @@ public class CountIntegrationTest {
 
         env.execute();
 
-        assertTrue("The program should correctly count the number of elements", matcher.streamsAreEquivalent());
+        matcher.assertStreamsAreEquivalent();
     }
 
     @Test
