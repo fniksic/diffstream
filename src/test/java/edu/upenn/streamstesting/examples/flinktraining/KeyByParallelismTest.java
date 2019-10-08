@@ -67,7 +67,7 @@ public class KeyByParallelismTest {
         return positionsByTaxi;
     }
 
-    // TODO: Make this more streamlined
+    // TODO: Make this more streamlined. Discuss how to do this with Filip
     public DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> generateInput(StreamExecutionEnvironment env)
             throws NoSuchMethodException {
 
@@ -148,6 +148,46 @@ public class KeyByParallelismTest {
         // Question: How can one specify what is the exact field for which to generate items in range, rather than
         //           arbitrary longs.
 
+
+        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
+        seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
+        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
+
+        // TODO: Make sure that the matcher is indeed replying in an online fashion, not waiting until it sees the end
+        //       of the stream.
+
+//        output.print();
+
+        env.execute();
+
+        // TODO: In order to have a proper story for continuous safe upgrade, we need to think about the debugging output
+        //       that the matcher outputs whenever equivalence is not true. After we think about this, we should implement
+        //       and write about it somewhere in the paper too, as it is part of the story.
+        assertFalse("The two implementations shouldn't be equivalent", matcher.streamsAreEquivalent());
+    }
+
+    @Test
+    public void manualTestPositionsByKey() throws Exception {
+
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // Generating input is part of both scenarios, however in our case it should be much simpler to do.
+        DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
+
+        input.print();
+
+        // TODO: In my opinion, we should contrast differential testing with unit and integration testing.
+        //       So here we should have both the case where the user predicts the possible output,
+        //       making a matcher that checks the correct output against that, and (maybe) also a case
+        //       where the user writes a sequential and a parallel computation and compares them.
+        //
+        // TODO: In the case of manual integration/unit testing, one cannot even use a random generator,
+        //       because they would have to make the output by hand.
+        KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
+        KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
+
+        // TODO: Implement a matcher that keeps a map from keys to sequences for each output, and then compares those, by
+        //       adding, and removing elements in the lists based on their keys.
 
         StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
         seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
