@@ -19,12 +19,12 @@ public class KeyByParallelismManualMatcher {
 
     private static final Object lock = new Object();
 
-    public static void newLeftOutputOnline(Tuple2<Long, Tuple2<Long, Long>> item) {
+    public static boolean newLeftOutputOnline(Tuple2<Long, Tuple2<Long, Long>> item) {
         newLeftOutput(item);
 
         // Check and remove the prefix of output items for this key
         Long key = item.f0;
-        cleanUpPrefixes(key);
+        return cleanUpPrefixes(key);
     }
 
     public static void newLeftOutput(Tuple2<Long, Tuple2<Long, Long>> item) {
@@ -37,12 +37,12 @@ public class KeyByParallelismManualMatcher {
         }
     }
 
-    public static void newRightOutputOnline(Tuple2<Long, Tuple2<Long, Long>> item) {
+    public static boolean newRightOutputOnline(Tuple2<Long, Tuple2<Long, Long>> item) {
         newRightOutput(item);
 
         // Check and remove the prefix of output items for this key
         Long key = item.f0;
-        cleanUpPrefixes(key);
+        return cleanUpPrefixes(key);
     }
 
     public static void newRightOutput(Tuple2<Long, Tuple2<Long, Long>> item) {
@@ -55,7 +55,7 @@ public class KeyByParallelismManualMatcher {
         }
     }
 
-    public static void cleanUpPrefixes(Long key) {
+    public static boolean cleanUpPrefixes(Long key) {
         synchronized (lock) {
             ArrayList oldLeft = leftOutput.getOrDefault(key, new ArrayList<>());
             ArrayList oldRight = rightOutput.getOrDefault(key, new ArrayList<>());
@@ -63,11 +63,13 @@ public class KeyByParallelismManualMatcher {
             // Find the longest common prefix of the two lists
 
             // WARNING: This is disgusting code :)
+            boolean unmatched = false;
             while(oldLeft.size() > 0 && oldRight.size() > 0) {
                 if(oldLeft.get(0) == oldRight.get(0)) {
                     oldLeft.remove(0);
                     oldRight.remove(0);
                 } else {
+                    unmatched = true;
                     break;
                 }
             }
@@ -75,6 +77,7 @@ public class KeyByParallelismManualMatcher {
             // Update the sequences in the hashmaps
             leftOutput.put(key, oldLeft);
             rightOutput.put(key, oldRight);
+            return unmatched;
         }
     }
 

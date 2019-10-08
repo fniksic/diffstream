@@ -1,6 +1,7 @@
 package edu.upenn.streamstesting.examples.flinktraining;
 
 import edu.upenn.streamstesting.StreamEquivalenceMatcher;
+import edu.upenn.streamstesting.StreamsNotEquivalentException;
 import edu.upenn.streamstesting.poset.Element;
 import edu.upenn.streamstesting.poset.Poset;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -47,13 +48,17 @@ class KeyByParallelismManualSink extends RichSinkFunction<Tuple2<Long, Tuple2<Lo
     public void invoke(Tuple2<Long, Tuple2<Long, Long>> item, Context context) throws Exception {
         if(isLeft()) {
             if(isOnline()) {
-                KeyByParallelismManualMatcher.newLeftOutputOnline(item);
+                if (KeyByParallelismManualMatcher.newLeftOutputOnline(item)) {
+                    throw new StreamsNotEquivalentException();
+                }
             } else {
                 KeyByParallelismManualMatcher.newLeftOutput(item);
             }
         } else {
             if(isOnline()) {
-                KeyByParallelismManualMatcher.newRightOutputOnline(item);
+                if (KeyByParallelismManualMatcher.newRightOutputOnline(item)) {
+                    throw new StreamsNotEquivalentException();
+                }
             } else {
                 KeyByParallelismManualMatcher.newRightOutput(item);
             }
