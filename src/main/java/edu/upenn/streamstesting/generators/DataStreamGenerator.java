@@ -1,4 +1,4 @@
-package edu.upenn.streamstesting;
+package edu.upenn.streamstesting.generators;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -55,8 +55,6 @@ public class DataStreamGenerator extends ComponentizedGenerator<DataStream>{
 		
 		ArrayList items = new ArrayList();
 		itemStream.limit(size).forEach(items::add);
-		// TODO: Make the generator really output a stream instead of just an element
-		// Old: Arrays.asList(componentGenerators().get(0).generate(random, status))
 		return (env.fromCollection(items));
 	}
 

@@ -59,6 +59,9 @@ look deeper in them if needed.
   want to deploy a flink program to feel more confident with using
   parallelism.
 
+- Documentation for Flink configuration: 
+  https://ci.apache.org/projects/flink/flink-docs-stable/dev/execution_configuration.html
+
 - The generator should also create timestamps (if an application talks
   about event time). In that case, we should also be able to configure
   the frequency of generation, because systems might exhibit bad
