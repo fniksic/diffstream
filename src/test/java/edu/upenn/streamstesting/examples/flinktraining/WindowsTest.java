@@ -70,7 +70,7 @@ public class WindowsTest {
     }
     
     //@Ignore
-    @Test
+    @Test(expected = Exception.class)
     public void testSumTipFiniteInput() throws Exception {
 
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
