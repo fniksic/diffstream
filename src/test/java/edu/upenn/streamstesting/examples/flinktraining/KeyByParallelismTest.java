@@ -119,7 +119,7 @@ public class KeyByParallelismTest {
 
 
 
-    @Test
+    @Test(expected = Exception.class)
     public void testPositionsByKey() throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
