@@ -1,6 +1,7 @@
 package edu.upenn.streamstesting;
 
 import edu.upenn.streamstesting.poset.Poset;
+import org.apache.flink.streaming.api.datastream.DataStream;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -20,6 +21,16 @@ public class StreamEquivalenceMatcher<IN> {
     public static <IN> StreamEquivalenceMatcher<IN> createMatcher(Dependence<IN> dependence) {
         StreamEquivalenceMatcher<IN> matcher = new StreamEquivalenceMatcher<>(dependence);
         matcherPool.put(matcher.getId(), matcher);
+        return matcher;
+    }
+
+    public static <IN> StreamEquivalenceMatcher<IN> createMatcher(DataStream<IN> out1,
+                                                                  DataStream<IN> out2,
+                                                                  Dependence<IN> dependence) {
+        StreamEquivalenceMatcher<IN> matcher = new StreamEquivalenceMatcher<>(dependence);
+        matcherPool.put(matcher.getId(), matcher);
+        out1.addSink(matcher.getSinkLeft()).setParallelism(1);
+        out2.addSink(matcher.getSinkRight()).setParallelism(1);
         return matcher;
     }
 
