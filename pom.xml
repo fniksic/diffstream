@@ -153,6 +153,13 @@ under the License.
             <version>${ververica.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Redis Dependency -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

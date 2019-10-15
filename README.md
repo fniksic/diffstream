@@ -14,6 +14,17 @@ mvn install:install-file \
     -Djavadoc=flink-training-exercises/target/flink-training-exercises-2.9.0-javadoc.jar
 ```
 
+## Installing Redis
+
+First run `sudo apt-get install redis-server` and then use:
+
+```sh
+sudo systemctl start redis-server.service
+```
+
+to start the server.
+
+
 ## Generating input
 
 KK: How should we generate the data items of input streams? Maybe a
