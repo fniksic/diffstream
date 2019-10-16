@@ -46,7 +46,7 @@ public class WordCount {
     public DataStream<Tuple2<String, String>>
     sequentialComputation(DataStream<String> events) {
 
-        // The input is words
+        // The input is words. For simplicity we can have end of page (or section) to be the empty string.
 
         DataStream<Tuple2<String, String>> output = events.flatMap(new RedisJoinBolt());
 

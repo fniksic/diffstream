@@ -172,7 +172,8 @@ public class KeyByParallelismTest {
         // Question: How can one specify what is the exact field for which to generate items in range, rather than
         //           arbitrary longs.
 
-        StreamEquivalenceMatcher.createMatcher(seqOutput, parallelOutput, new KeyByParallelismDependence());
+        StreamEquivalenceMatcher matcher =
+                StreamEquivalenceMatcher.createMatcher(seqOutput, parallelOutput, ((fst, snd) -> fst.f0 == snd.f0));
 
         env.execute();
     }

@@ -26,6 +26,30 @@ sudo systemctl start redis-server.service
 
 to start the server.
 
+## (Not needed) Installing Docker
+
+First run `sudo apt install docker.io` and then use:
+
+```sh
+sudo systemctl start docker
+```
+
+to start the docker service and:
+
+```sh
+sudo usermod -a -G docker $USER
+```
+
+to give your user permission to execute docker containers.
+
+## (Not needed) Installing OrientDB
+
+Install docker and run:
+
+```sh
+docker run -d --name orientdb -p 2424:2424 -p 2480:2480 -e ORIENTDB_ROOT_PASSWORD=root orientdb:latest
+```
+
 ## Generating input
 
 KK: How should we generate the data items of input streams? Maybe a
