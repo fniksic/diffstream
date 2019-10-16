@@ -9,6 +9,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -24,7 +25,9 @@ public class WordCountTest {
                             .setNumberTaskManagers(1)
                             .build());
 
-    @Test
+
+    @Ignore
+    // @Test
     public void redisTest () {
         Jedis jedis = new Jedis("localhost");
         jedis.set("foo", "bar");
@@ -33,7 +36,8 @@ public class WordCountTest {
         assert(value.equals("bar"));
     }
 
-    @Test
+    @Ignore
+    // @Test
     public void redisTest2 () {
         Jedis jedis = new Jedis("localhost");
         WordCount wc = new WordCount(jedis);
@@ -44,7 +48,8 @@ public class WordCountTest {
         assert(value2.equals("bean"));
     }
 
-    @Test
+    @Ignore
+    // @Test
     public void manualWordCountTest() throws Exception {
 
         // Initialize and fill Jedis
