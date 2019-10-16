@@ -7,3 +7,6 @@
 [submodule "streaming-benchmarks"]
 	path = streaming-benchmarks
 	url = git@github.com:angelhof/streaming-benchmarks.git
+[submodule "yahoo-streaming-benchmark"]
+	path = yahoo-streaming-benchmark
+	url = git@github.com:angelhof/yahoo-streaming-benchmark.git

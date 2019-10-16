@@ -16,6 +16,16 @@ mvn install:install-file \
 
 That finishes the installation. To see if everything is working, run `mvn test`.
 
+## Installing Redis
+
+First run `sudo apt-get install redis-server` and then use:
+
+```sh
+sudo systemctl start redis-server.service
+```
+
+to start the server.
+
 ## Generating input
 
 KK: How should we generate the data items of input streams? Maybe a
