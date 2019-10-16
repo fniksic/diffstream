@@ -51,13 +51,13 @@ public class KeyByParallelismTest {
     public KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple>
     sequentialComputation(DataStream<Tuple3<@InRange(minLong = 0L, maxLong = 10L) Long, Tuple2<Long, Long>, Integer>> events) {
 
-        // The input is supposed to be taxiId, position, and metadata.
+        // The input is supposed to be taxiID, position, and metadata.
 
-        // We first project the position and taxiId
+        // We first project the taxiID and position
         SingleOutputStreamOperator<Tuple2<Long, Tuple2<Long, Long>>> positions = events.project(0, 1);
         positions.setParallelism(1);
 
-        // Then we keyBy TaxiId
+        // Then we keyBy TaxiID
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> positionsByTaxi = positions.keyBy(0);
 
         // TODO: Would it be possible to also setParallelism(1) here?
@@ -69,12 +69,12 @@ public class KeyByParallelismTest {
     public KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple>
     parallelComputation(DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> events) {
 
-        // The input is supposed to be taxiId, position, and metadata.
+        // The input is supposed to be taxiID, position, and metadata.
 
-        // We first project the position and taxiId
+        // We first project the taxiID and position
         DataStream<Tuple2<Long, Tuple2<Long, Long>>> positions = events.project(0, 1);
 
-        // Then we keyBy TaxiId
+        // Then we keyBy TaxiID
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> positionsByTaxi = positions.keyBy(0);
 
         // Then we Probe
@@ -84,7 +84,7 @@ public class KeyByParallelismTest {
     public DataStream<Tuple2<Long, Tuple2<Long, Long>>>
     correctParallelComputation(DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> events) {
 
-        // The input is supposed to be taxiId, position, and metadata.
+        // The input is supposed to be taxiID, position, and metadata.
 
         KeyedStream<Tuple3<Long, Tuple2<Long, Long>, Integer>, Tuple> byTaxi = events.keyBy(0);
 
