@@ -195,6 +195,12 @@ public class StringConcatTest {
         matcher.assertStreamsAreEquivalent();
     }
 
+    // This doesn't work at the moment. I either have to find a way to solve it using datastreams, but I think
+    // that the proper way is making a generator that returns a Source. The source could take the component generator
+    // as an argument and it can use it to gradually output elements. At the moment we have to wait for the generator
+    // to generate all the items before it exits. This way the source could just generate a stream of objects,
+    // and assign them timestamps.
+
     @Ignore
     public void testConcat() throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
