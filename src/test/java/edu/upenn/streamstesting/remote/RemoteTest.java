@@ -66,4 +66,27 @@ public class RemoteTest {
         matcher.assertStreamsAreEquivalent();
         RemoteMatcherFactory.destroy();
     }
+    @Ignore
+    @Test
+    public void testRemoteIncDecEquivalentLogUnmatched() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        env.setParallelism(2);
+
+        DataStream<IncDecItem> first = env.fromElements(IncDecItem.class,
+                new Dec(1), new Dec(2), new Hash(),
+                new Inc(3), new Inc(1), new Hash()
+        ).setParallelism(1);
+        DataStream<IncDecItem> second = env.fromElements(IncDecItem.class,
+                new Dec(2), new Dec(1), new Hash(),
+                new Inc(1), new Inc(3), new Hash()
+        ).setParallelism(1);
+
+        RemoteMatcherFactory.init();
+        RemoteStreamEquivalenceMatcher<IncDecItem> matcher = RemoteMatcherFactory.getInstance().
+                createMatcher(first, second, new IncDecDependence(), true);
+        env.execute();
+        matcher.assertStreamsAreEquivalent();
+        RemoteMatcherFactory.destroy();
+    }
 }

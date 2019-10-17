@@ -53,8 +53,9 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
         }
     }
 
-    public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(Dependence<IN> dependence) throws RemoteException {
-        RemoteStreamEquivalenceMatcher<IN> matcher = new RemoteStreamEquivalenceMatcher<>(dependence);
+    public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(Dependence<IN> dependence,
+                                                                                      boolean matcherLogItems) throws RemoteException {
+        RemoteStreamEquivalenceMatcher<IN> matcher = new RemoteStreamEquivalenceMatcher<>(dependence, matcherLogItems);
         matcherPool.put(matcher.getId(), matcher);
         UnicastRemoteObject.exportObject(matcher, 0);
         return matcher;
@@ -63,7 +64,17 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
     public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(DataStream<IN> leftStream,
                                                                                       DataStream<IN> rightStream,
                                                                                       Dependence<IN> dependence) throws RemoteException {
-        RemoteStreamEquivalenceMatcher<IN> matcher = createMatcher(dependence);
+        RemoteStreamEquivalenceMatcher<IN> matcher = createMatcher(dependence, false);
+        leftStream.addSink(matcher.getSinkLeft()).setParallelism(1);
+        rightStream.addSink(matcher.getSinkRight()).setParallelism(1);
+        return matcher;
+    }
+
+    public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(DataStream<IN> leftStream,
+                                                                                      DataStream<IN> rightStream,
+                                                                                      Dependence<IN> dependence,
+                                                                                      boolean matcherLogItems) throws RemoteException {
+        RemoteStreamEquivalenceMatcher<IN> matcher = createMatcher(dependence, matcherLogItems);
         leftStream.addSink(matcher.getSinkLeft()).setParallelism(1);
         rightStream.addSink(matcher.getSinkRight()).setParallelism(1);
         return matcher;

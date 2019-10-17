@@ -5,8 +5,9 @@ import edu.upenn.streamstesting.StreamsNotEquivalentException;
 import edu.upenn.streamstesting.poset.Element;
 import edu.upenn.streamstesting.poset.Poset;
 
-import java.io.Serializable;
+import java.io.*;
 import java.rmi.RemoteException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements RemoteMatcher<IN> {
@@ -22,6 +23,21 @@ public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements 
         this.id = matcherCount.incrementAndGet();
         this.unmatchedItemsLeft = new Poset<>(dependence);
         this.unmatchedItemsRight = new Poset<>(dependence);
+    }
+
+    public RemoteStreamEquivalenceMatcher(Dependence<IN> dependence, boolean matcherLogItems) {
+        this.id = matcherCount.incrementAndGet();
+        this.unmatchedItemsLeft = new Poset<>(dependence);
+        this.unmatchedItemsRight = new Poset<>(dependence);
+        if(matcherLogItems) {
+            Thread t = new Thread() {
+
+                public void run() {
+                    logItems();
+                }
+            };
+            t.start();
+        }
     }
 
     public long getId() {
@@ -66,6 +82,37 @@ public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements 
         RemoteMatcherFactory.getInstance().destroyMatcher(id);
         if (detectedNonEquivalence || !unmatchedItemsLeft.isEmpty() || !unmatchedItemsRight.isEmpty()) {
             throw new StreamsNotEquivalentException();
+        }
+    }
+
+    // If we have issues with sleep drift, then we can use this method.
+    // https://stackoverflow.com/questions/24104313/how-do-i-make-a-delay-in-java
+    public void logItems() {
+        PrintWriter pw = null;
+
+        System.out.println(" -- -- -- Matcher Thread -- -- -- ");
+        try {
+            File file = new File("unmatched-items.txt");
+            System.out.println("File writable: " + file.canWrite());
+            file.setWritable(true);
+            FileWriter fw = new FileWriter(file);
+            pw = new PrintWriter(fw);
+            while(true) {
+                int leftUnmatched = unmatchedItemsLeft.size();
+                int rightUnmatched = unmatchedItemsRight.size();
+                pw.println("Unmatched items: left: " + leftUnmatched + " right: " + rightUnmatched);
+                pw.flush();
+                System.out.println("Unmatched items: left: " + leftUnmatched + " right: " + rightUnmatched);
+                TimeUnit.SECONDS.sleep(1);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            System.out.println(" !! !! [ERROR] Thread got interrupted!");
+        } finally {
+            if (pw != null) {
+                pw.close();
+            }
         }
     }
 }

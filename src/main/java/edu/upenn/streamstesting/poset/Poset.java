@@ -94,4 +94,6 @@ public class Poset<T> {
     public boolean isEmpty() {
         return elements.isEmpty();
     }
+
+    public int size() { return elements.size(); }
 }
