@@ -19,7 +19,6 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
     public static final String REMOTE_MATCHER_REPOSITORY = "RemoteMatcherRepository";
 
     public static RemoteMatcherFactory instance = null;
-    public static RemoteMatcherRepository remoteInstanceStub = null;
 
     private final ConcurrentMap<Long, RemoteStreamEquivalenceMatcher<?>> matcherPool = new ConcurrentHashMap<>();
 
@@ -30,7 +29,8 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
     public static void init() throws RemoteException {
         if (instance == null) {
             instance = new RemoteMatcherFactory();
-            remoteInstanceStub = (RemoteMatcherRepository) UnicastRemoteObject.exportObject(instance, 0);
+            RemoteMatcherRepository remoteInstanceStub =
+                    (RemoteMatcherRepository) UnicastRemoteObject.exportObject(instance, 0);
             Registry registry = LocateRegistry.getRegistry();
             registry.rebind(REMOTE_MATCHER_REPOSITORY, remoteInstanceStub);
         }
@@ -50,7 +50,6 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
 
             }
             instance = null;
-            remoteInstanceStub = null;
         }
     }
 
