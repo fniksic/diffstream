@@ -56,6 +56,25 @@ KK: How should we generate the data items of input streams? Maybe a
 good start would be to use the input generators from some property
 based testing java library? Does anyone have a better idea?
 
+## Starting the Java RMI registry
+
+In order to run experiments on a standalone Flink cluster, we need
+to use the sinks and matchers that communicate via Java RMI. These
+are located in the package `edu.upenn.streamstesting.remote`. An
+example of using the remote matcher can be found in
+`edu.upenn.streamstesting.remote.RemoteTest`; the test itself still
+runs on the `MiniClusterWithClientResource`, but it uses Java RMI.
+
+Before using the remote matcher, it is necessary to start the
+utility called `rmiregistry`. Start it like this:
+
+```sh
+rmiregistry -J-Djava.rmi.server.codebase=file:/home/filip/streams-testing/target/classes/ &
+```
+
+Change the path to wherever your target classes are located. Don't
+forget the slash at the end.
+
 ## Possible example sources
 
 I gathered some Flink examples that I could find with a search on
