@@ -1,6 +1,5 @@
 package edu.upenn.streamstesting.remote;
 
-import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import edu.upenn.streamstesting.examples.incdec.*;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.DataStream;
