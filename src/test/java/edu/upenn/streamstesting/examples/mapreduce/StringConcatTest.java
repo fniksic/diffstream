@@ -2,23 +2,29 @@ package edu.upenn.streamstesting.examples.mapreduce;
 
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.InRange;
+import com.pholser.junit.quickcheck.generator.Size;
 import edu.upenn.streamstesting.EmptyDependence;
+import edu.upenn.streamstesting.FullDependence;
 import edu.upenn.streamstesting.InputGenerator;
 import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import edu.upenn.streamstesting.examples.flinktraining.WindowsTest;
+import edu.upenn.streamstesting.generators.WithTimestamps;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +51,18 @@ public class StringConcatTest {
         return x;
     }
 
+    private static KeyedString idToKeyString(Tuple2<Integer, String> x) {
+        Integer first = x.f0;
+        String second = x.f1;
+        return new KeyedString(first, second);
+    }
+
     // This class exists to define the custom dependence relation that checks for equivalence
     // by considering string to be sets of strings concatenated with "|"
     private static class KeyedString extends Tuple2<Integer, String> {
 
-        public KeyedString(Integer f0, String s) {
-            super(f0, s);
+        public KeyedString(Integer f0, String f1) {
+            super(f0, f1);
         }
 
         public boolean equals(KeyedString other) {
@@ -64,13 +76,23 @@ public class StringConcatTest {
     // This function takes a stream of keyed strings and concatenates the strings for each key.
     // A test around this computation can ignore the false positive if the equivalence relation is set to check the
     // strings for equivalence as a set of strings concatenated with |.
-    public SingleOutputStreamOperator<Tuple2<Integer, String>> concatenate(DataStream<Tuple2<Integer, String>> events, Boolean isSequential) {
+    public SingleOutputStreamOperator<KeyedString> concatenate(
+            @WithTimestamps @Size(min=10000, max=100000) DataStream<Tuple2<Integer, String>> events, Boolean isSequential) {
 
+        SingleOutputStreamOperator<KeyedString> mapped = events
+                .map(StringConcatTest::idToKeyString);
 
-        KeyedStream<Tuple2<Integer, String>, Tuple> keyed = preConcatenate(events, isSequential);
+        if(isSequential) {
+            mapped.setParallelism(1);
+        } else {
+            mapped.setParallelism(2);
+        }
 
-        SingleOutputStreamOperator<Tuple2<Integer, String>> concat = keyed
-                        .window(TumblingProcessingTimeWindows.of(Time.seconds(1)))
+        KeyedStream<KeyedString, Tuple> keyed = mapped
+                .keyBy("f0");
+
+        SingleOutputStreamOperator<KeyedString> concat = keyed
+                        .window(TumblingEventTimeWindows.of(Time.milliseconds(100)))
                         .reduce(new StrConcatReducer());
 
         if(isSequential) {
@@ -80,6 +102,16 @@ public class StringConcatTest {
         }
 
         return concat;
+    }
+
+    // This is a reducer that concatenates all the strings in a window to one string
+    // In this case the tester should have a different equivalence relation.
+    public class StrConcatReducer implements ReduceFunction<KeyedString>
+    {
+        @Override
+        public KeyedString reduce(KeyedString in1, KeyedString in2) {
+            return new KeyedString(in1.f0, in1.f1 + "@" + in2.f1);
+        }
     }
 
     // This function splits the stream by key (as would the first step of a reducer do.
@@ -101,17 +133,8 @@ public class StringConcatTest {
         return keyed;
     }
 
-    // This is a reducer that concatenates all the strings in a window to one string
-    // In this case the tester should have a different equivalence relation.
-    public class StrConcatReducer implements ReduceFunction<Tuple2<Integer, String>>
-    {
-        @Override
-         public Tuple2<Integer, String> reduce(Tuple2<Integer, String> in1, Tuple2<Integer, String> in2) {
-             return new Tuple2<>(in1.f0, in1.f1 + "@" + in2.f1);
-        }
-    }
 
-    public DataStream<Tuple2<Integer, String>> generateInput(StreamExecutionEnvironment env)
+    public DataStream<Tuple2<Integer, String>> generateInput(StreamExecutionEnvironment env, String methodName)
             throws NoSuchMethodException {
 
         // Note: All of the lines until the call to the parameterGenerator method, can be circumvented
@@ -122,7 +145,7 @@ public class StringConcatTest {
         Class[] cArg = new Class[1];
         cArg[0] = DataStream.class;
 
-        Method testMethod = getClass().getMethod("preConcatenate", DataStream.class, Boolean.class);
+        Method testMethod = getClass().getMethod(methodName, DataStream.class, Boolean.class);
 
         Parameter parameter = testMethod.getParameters()[0];
 
@@ -143,7 +166,7 @@ public class StringConcatTest {
 
         // WARNING: It might be the case that the input generates the character '|' in the strings, which
         // could lead to problems. TODO: Fix that
-        DataStream<Tuple2<Integer, String>> input = generateInput(env);
+        DataStream<Tuple2<Integer, String>> input = generateInput(env, "preConcatenate");
 
         KeyedStream<Tuple2<Integer, String>, Tuple> seqOutput = preConcatenate(input, true);
         KeyedStream<Tuple2<Integer, String>, Tuple> parallelOutput = preConcatenate(input, false);
@@ -159,7 +182,7 @@ public class StringConcatTest {
     public void testOrderIndependent() throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        DataStream<Tuple2<Integer, String>> input = generateInput(env);
+        DataStream<Tuple2<Integer, String>> input = generateInput(env, "preConcatenate");
 
         KeyedStream<Tuple2<Integer, String>, Tuple> seqOutput = preConcatenate(input, true);
         KeyedStream<Tuple2<Integer, String>, Tuple> parallelOutput = preConcatenate(input, false);
@@ -167,6 +190,31 @@ public class StringConcatTest {
 
         StreamEquivalenceMatcher matcher =
                 StreamEquivalenceMatcher.createMatcher(seqOutput, parallelOutput, new EmptyDependence<>());
+
+        env.execute();
+        matcher.assertStreamsAreEquivalent();
+    }
+
+    // This doesn't work at the moment. I either have to find a way to solve it using datastreams, but I think
+    // that the proper way is making a generator that returns a Source. The source could take the component generator
+    // as an argument and it can use it to gradually output elements. At the moment we have to wait for the generator
+    // to generate all the items before it exits. This way the source could just generate a stream of objects,
+    // and assign them timestamps.
+
+    @Ignore
+    public void testConcat() throws Exception{
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+
+        DataStream<Tuple2<Integer, String>> input = generateInput(env, "concatenate");
+
+        SingleOutputStreamOperator<KeyedString> seqOutput = concatenate(input, true);
+        SingleOutputStreamOperator<KeyedString> parallelOutput = concatenate(input, false);
+
+
+        StreamEquivalenceMatcher matcher =
+                StreamEquivalenceMatcher.createMatcher(seqOutput, parallelOutput, new FullDependence<>());
 
         env.execute();
         matcher.assertStreamsAreEquivalent();
