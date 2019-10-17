@@ -4,6 +4,7 @@ import edu.upenn.streamstesting.Dependence;
 import org.apache.flink.streaming.api.datastream.DataStream;
 
 import java.io.Serializable;
+import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -41,7 +42,7 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
 
     public static void destroy() throws RemoteException {
         if (instance != null) {
-            UnicastRemoteObject.unexportObject(remoteInstanceStub, true);
+            UnicastRemoteObject.unexportObject(instance, true);
             Registry registry = LocateRegistry.getRegistry();
             try {
                 registry.unbind(REMOTE_MATCHER_REPOSITORY);
@@ -53,15 +54,16 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
         }
     }
 
-    public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(Dependence<IN> dependence) {
+    public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(Dependence<IN> dependence) throws RemoteException {
         RemoteStreamEquivalenceMatcher<IN> matcher = new RemoteStreamEquivalenceMatcher<>(dependence);
         matcherPool.put(matcher.getId(), matcher);
+        UnicastRemoteObject.exportObject(matcher, 0);
         return matcher;
     }
 
     public <IN extends Serializable> RemoteStreamEquivalenceMatcher<IN> createMatcher(DataStream<IN> leftStream,
                                                                                       DataStream<IN> rightStream,
-                                                                                      Dependence<IN> dependence) {
+                                                                                      Dependence<IN> dependence) throws RemoteException {
         RemoteStreamEquivalenceMatcher<IN> matcher = createMatcher(dependence);
         leftStream.addSink(matcher.getSinkLeft()).setParallelism(1);
         rightStream.addSink(matcher.getSinkRight()).setParallelism(1);
@@ -74,6 +76,11 @@ public class RemoteMatcherFactory implements RemoteMatcherRepository {
     }
 
     public void destroyMatcher(long matcherId) {
-        matcherPool.remove(matcherId);
+        RemoteStreamEquivalenceMatcher<?> matcher = matcherPool.remove(matcherId);
+        try {
+            UnicastRemoteObject.unexportObject(matcher, true);
+        } catch (NoSuchObjectException e) {
+
+        }
     }
 }
