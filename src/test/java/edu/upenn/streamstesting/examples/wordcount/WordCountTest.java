@@ -68,4 +68,18 @@ public class WordCountTest {
 
         env.execute();
     }
+
+    @Test
+    public void wordCountSourceTest() throws Exception {
+
+        // Initialize the FLink environment
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+
+        DataStreamSource<String> source = env.addSource(new WordCountSource(10));
+
+        source.print();
+
+        env.execute();
+    }
 }
