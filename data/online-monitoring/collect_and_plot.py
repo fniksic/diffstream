@@ -20,7 +20,7 @@ def plot_memories_in_time(memories):
     x = np.linspace(0, len(memories), len(memories))
     plt.plot(x, memories)
     plt.show()
-
+    
 def parse_unmatched(dir_name):
     with open(dir_name + "/unmatched-items.txt") as f:
         lines = f.readlines()
@@ -45,9 +45,20 @@ def plot_unmatched_in_time(unmatched):
     plt.plot(x, right)
     plt.plot(x, sums)
     plt.show()
+
+def plot_unmatched_histogram(unmatched):
+    left_right = list(zip(*unmatched))
+    left = list(left_right[0])
+    right = list(left_right[1])
+    sums = [l + r for l, r in unmatched]
+    
+    n_bins = 20
+    plt.hist(sums, bins=n_bins)
+    plt.show()
     
 # memories = parse_memories(dir_name)
 # plot_memories_in_time(memories)
 
 unmatched = parse_unmatched(dir_name)
-plot_unmatched_in_time(unmatched)
+# plot_unmatched_in_time(unmatched)
+plot_unmatched_histogram(unmatched)
