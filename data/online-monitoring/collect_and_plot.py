@@ -55,6 +55,24 @@ def plot_unmatched_histogram(unmatched):
     n_bins = 20
     plt.hist(sums, bins=n_bins)
     plt.show()
+
+## Yahoo benchmark on the server can run up to 40K input messages per
+## second.  This is with setParallelism(2) and 1-2 implementations
+## running at the same time. (It didn't really matter whether we
+## execute one or two implementations at the same time)
+
+## The matcher can handle 30K input messages per second (TODO: We have
+## to make sure that indeed it handled it)
+
+## TODO: Also execute a setParallelism(1) version of the two
+## implementations, so that I find out what is the number of items
+## that the implementations can handle with parallelism(1). If that is
+## also close to 30K, then our matcher is not really slower than the
+## implementation, and even though it has parallelism one it can
+## handle almost as many messages as the parallelism(2)
+## implementations. This ofcourse depends on the computation, but
+## having a matcher that can handle what parallelism(2) can is a
+## pretty good thing.
     
 # memories = parse_memories(dir_name)
 # plot_memories_in_time(memories)
