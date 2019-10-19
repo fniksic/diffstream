@@ -69,7 +69,8 @@ public class WordCountTest {
         env.execute();
     }
 
-    @Test
+    @Ignore
+//    @Test
     public void wordCountSourceTest() throws Exception {
 
         // Initialize the FLink environment
