@@ -1,9 +1,25 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+SMALL_SIZE = 10
+MEDIUM_SIZE = 12
+BIGGER_SIZE = 14
 
-# dir_name = "load_20000_time_600_leftpar_2_rightpar_2" 
-dir_name = "server_load_30000_time_3600_leftpar_2_rightpar_2/"
+plt.rc('font', size=MEDIUM_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=BIGGER_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+plt.rcParams['mathtext.fontset'] = 'stix'
+plt.rcParams['font.family'] = 'STIXGeneral'
+
+# dir_name = "load_20000_time_600_leftpar_2_rightpar_2/" 
+# dir_name = "server_load_30000_time_3600_leftpar_2_rightpar_2/"
+# dir_name = "server_debug_memory/"
+dir_name = "server_load_30000_time_7200_leftpar_2_rightpar_2/"
 
 
 def parse_memories(dir_name):
@@ -19,11 +35,12 @@ def parse_memory_line(line):
     return int(memory_string)
 
 def plot_memories_in_time(dir_name, memories):
+    fig = plt.figure()
     x = np.linspace(0, len(memories), len(memories))
     plt.plot(x, memories)
-    plt.title("Use memory in time")
-    plt.xlabel("Time")
-    plt.ylabel("Used memory (MB)")
+    plt.title("Memory Usage")
+    plt.xlabel("Time (seconds)")
+    plt.ylabel("Used Memory (MB)")
     # plt.show()
     plt.savefig(dir_name + "/used_memory_in_time.png")
     
@@ -52,7 +69,7 @@ def plot_unmatched_in_time(dir_name, unmatched):
     plt.plot(x, right, label='Right')
     plt.plot(x, sums, label='Total')
     plt.title("Unmatched items in time")
-    plt.xlabel("Time")
+    plt.xlabel("Time (seconds)")
     plt.ylabel("Number of unmatched items")
     plt.legend()
     # plt.show()
@@ -67,7 +84,7 @@ def plot_unmatched_histogram(dir_name, unmatched):
     
     n_bins = 20
     plt.hist(sums, bins=n_bins)
-    plt.title("Histogram of sum of unmatched left and right items")
+    plt.title("Histogram of total unmatched items")
     plt.ylabel("Number of samples")
     plt.xlabel("Unmatched items")
     # plt.show()
@@ -91,6 +108,8 @@ def plot_unmatched_histogram(dir_name, unmatched):
 ## implementations. This ofcourse depends on the computation, but
 ## having a matcher that can handle what parallelism(2) can is a
 ## pretty good thing.
+
+## A setParallelism(1) version can also barely handle 30K without falling behind.
     
 memories = parse_memories(dir_name)
 plot_memories_in_time(dir_name, memories)
