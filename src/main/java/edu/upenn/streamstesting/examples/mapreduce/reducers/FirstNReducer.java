@@ -1,7 +1,7 @@
 package edu.upenn.streamstesting.examples.mapreduce;
 
-import org.apache.flink.api.common.functions.GroupReduceFunction;
-import org.apache.flink.util.Collector;
+import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,20 +12,32 @@ import java.util.Set;
  * Otherwise, nondeterministic for most inputs.
  */
 public class FirstNReducer implements
-    GroupReduceFunction<ReducerExamplesItem, Set<ReducerExamplesItem>>
+        AggregateFunction<ReducerExamplesItem,
+                          Tuple2<Set<ReducerExamplesItem>, Integer>,
+                          Set<ReducerExamplesItem>>
 {
-    @Override
-    public void reduce(Iterable<ReducerExamplesItem> in,
-                       Collector<Set<ReducerExamplesItem>> out) {
-        Set<ReducerExamplesItem> items = new HashSet<ReducerExamplesItem>();
+    public Tuple2<Set<ReducerExamplesItem>, Integer> createAccumulator() {
+        Set<ReducerExamplesItem> s = new HashSet<>();
         Integer count = 0;
-        for (ReducerExamplesItem i: in) {
-            count++;
-            if (count > 100) {
-                break;
-            }
-            items.add(i);
+        return new Tuple2<>(s, count);
+    }
+    public Tuple2<Set<ReducerExamplesItem>, Integer> add(
+            ReducerExamplesItem newItem,
+            Tuple2<Set<ReducerExamplesItem>, Integer> state
+    ) {
+        Set<ReducerExamplesItem> items = state.f0;
+        Integer count = state.f1;
+        count++;
+        if (count <= 100) {
+            items.add(newItem);
         }
-        out.collect(items);
+        return new Tuple2<>(items, count);
+    }
+    public Set<ReducerExamplesItem> getResult(Tuple2<Set<ReducerExamplesItem>, Integer> state) {
+        return state.f0;
+    }
+    public Tuple2<Set<ReducerExamplesItem>, Integer> merge(Tuple2<Set<ReducerExamplesItem>, Integer> ignore1,
+                                                           Tuple2<Set<ReducerExamplesItem>, Integer> ignore2) {
+        throw new RuntimeException("'merge' should not be called");
     }
 }

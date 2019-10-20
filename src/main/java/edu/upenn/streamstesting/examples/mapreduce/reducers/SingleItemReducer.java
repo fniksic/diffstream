@@ -1,24 +1,24 @@
 package edu.upenn.streamstesting.examples.mapreduce;
 
-import org.apache.flink.api.common.functions.GroupReduceFunction;
-import org.apache.flink.util.Collector;
+import org.apache.flink.api.common.functions.AggregateFunction;
 
 /**
  * 1. SingleItem reducer
  * Requires the functional dependency key -> x.
  */
 public class SingleItemReducer implements
-    GroupReduceFunction<ReducerExamplesItem, Integer>
+        AggregateFunction<ReducerExamplesItem, Integer, Integer>
 {
-    @Override
-    public void reduce(Iterable<ReducerExamplesItem> in,
-                       Collector<Integer> out) {
-        Integer x = null;
-        for (ReducerExamplesItem i: in) {
-            x = i.x;
-        }
-        if (x != null) {
-            out.collect(x);
-        }
+    public Integer createAccumulator() {
+        return null;
+    }
+    public Integer add(ReducerExamplesItem newItem, Integer saved) {
+        return newItem.x;
+    }
+    public Integer getResult(Integer saved) {
+        return saved;
+    }
+    public Integer merge(Integer ignore1, Integer ignore2) {
+        throw new RuntimeException("'merge' should not be called");
     }
 }

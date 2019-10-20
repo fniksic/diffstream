@@ -7,7 +7,7 @@ import org.apache.flink.util.Collector;
  * 5. StrConcatReducer
  * Requires that the consumer of the output does not care about order.
  */
-public class StrConcatReducer implements
+public class StrConcatGroupReducerV2 implements
     GroupReduceFunction<ReducerExamplesItem, ReducerExamplesItem>
 {
     @Override
