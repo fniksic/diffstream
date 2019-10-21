@@ -142,9 +142,6 @@ public class StringConcatTest {
         InputGenerator<DataStream<Tuple2<Integer, String>>> inputGen =
                 new InputGenerator(env);
 
-        Class[] cArg = new Class[1];
-        cArg[0] = DataStream.class;
-
         Method testMethod = getClass().getMethod(methodName, DataStream.class, Boolean.class);
 
         Parameter parameter = testMethod.getParameters()[0];

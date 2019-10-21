@@ -1,5 +1,6 @@
-package edu.upenn.streamstesting.examples.mapreduce;
+package edu.upenn.streamstesting.examples.mapreduce.reducers;
 
+import edu.upenn.streamstesting.examples.mapreduce.ReducerExamplesItem;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
 import java.util.HashMap;

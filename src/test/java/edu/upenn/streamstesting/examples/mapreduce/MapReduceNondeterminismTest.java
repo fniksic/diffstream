@@ -3,16 +3,21 @@ package edu.upenn.streamstesting.examples.mapreduce;
 import com.pholser.junit.quickcheck.generator.Generator;
 import edu.upenn.streamstesting.*;
 import edu.upenn.streamstesting.examples.flinktraining.WindowsTest;
+import edu.upenn.streamstesting.examples.mapreduce.reducers.*;
 import org.apache.flink.api.common.functions.AggregateFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +32,10 @@ public class MapReduceNondeterminismTest {
     private static final Logger LOG = LoggerFactory.getLogger(WindowsTest.class);
 
     private static final int PARALLELISM = 2;
+    private static final boolean DEBUG = true;
+
+    private static final int TEST_ITERATIONS = 5;
+    private static final int TEST_STREAM_FUEL = 100;
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
@@ -54,6 +63,7 @@ public class MapReduceNondeterminismTest {
         return keyed;
     }
 
+/*
     public DataStream<ReducerExamplesItem> generateInput(StreamExecutionEnvironment env, String methodName)
             throws NoSuchMethodException {
 
@@ -74,54 +84,171 @@ public class MapReduceNondeterminismTest {
 
         return stream;
     }
+*/
 
-//    /* =============== TEMPLATE FOR ALL TESTS =============== */
-//
-//    public <AccType, OutType> void mapReduceTest(
-//            AggregateFunction<ReducerExamplesItem, AccType, OutType> testReducer,
-//            Dependence<OutType> dependence
-//            ) throws Exception {
-//        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-//        DataStream<ReducerExamplesItem> testInput = generateInput(env, "identityMapper");
-//
-//        SingleOutputStreamOperator<OutType> seqOutput =
-//                identityMapper(testInput, true)
-//                .window(TumblingEventTimeWindows.of(Time.milliseconds(100)))
-//                .aggregate(testReducer);
-//        SingleOutputStreamOperator<OutType> parOutput =
-//                identityMapper(testInput, false)
-//                .window(TumblingEventTimeWindows.of(Time.milliseconds(100)))
-//                .aggregate(testReducer);
-//
-//        StreamEquivalenceMatcher matcher =
-//                StreamEquivalenceMatcher.createMatcher(seqOutput, parOutput, dependence);
-//
-//        env.execute();
-//        matcher.assertStreamsAreEquivalent();
-//    }
-//
-//    /* =============== TESTS =============== */
-//
-//    // 1A. SingleItem on bad input
-//    @Test(expected = Exception.class)
-//    public void testSingleItemIncorrect() throws Exception {
-//        mapReduceTest(new SingleItemGroupReducer(), new FullDependence<Integer>());
-//    }
-//
-//    // 1B. SingleItem on good input
+    public <T> DataStream<T> printMapper(String info, DataStream<T> inStream) {
+        return inStream.map(new MapFunction<T, T>() {
+            @Override
+            public T map(T t) throws Exception {
+                System.out.println(info + t);
+                return t;
+            }
+        });
+    }
+
+    /* =============== TEMPLATE FOR ALL TESTS =============== */
+
+    // This template requires that the reducer be implemented as an AggregateFunction
+    public <AccType, OutType> void mapReduceTest(
+            SourceFunction<ReducerExamplesItem> inputSource,
+            AggregateFunction<ReducerExamplesItem, AccType, OutType> testReducer,
+            Dependence<OutType> dependence
+    ) throws Exception {
+        for (int iteration = 0; iteration < TEST_ITERATIONS; iteration++) {
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+            DataStream<ReducerExamplesItem> testInput =
+                    env.addSource(inputSource)
+                    .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<ReducerExamplesItem>() {
+                        @Override
+                        public long extractAscendingTimestamp(ReducerExamplesItem reducerExamplesItem) {
+                            return reducerExamplesItem.timestamp.getTime();
+                        }
+                    });
+
+            SingleOutputStreamOperator<OutType> seqOutput =
+                    identityMapper(testInput, true)
+                    .window(TumblingEventTimeWindows.of(Time.milliseconds(1000)))
+                    .aggregate(testReducer);
+            SingleOutputStreamOperator<OutType> parOutput =
+                    identityMapper(testInput, false)
+                    .window(TumblingEventTimeWindows.of(Time.milliseconds(1000)))
+                    .aggregate(testReducer);
+
+            if (DEBUG) {
+                DataStream<OutType> printer1 = printMapper("SEQ OUTPUT: ", seqOutput);
+                DataStream<OutType> printer2 = printMapper("PAR OUTPUT: ", parOutput);
+            }
+
+            StreamEquivalenceMatcher matcher =
+                    StreamEquivalenceMatcher.createMatcher(seqOutput, parOutput, dependence);
+
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
+    }
+
+    /* =============== TESTS =============== */
+
+    // 1A. SingleItem on bad input
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testSingleItemIncorrect() throws Exception {
+        mapReduceTest(
+                new BadDataSource(TEST_STREAM_FUEL),
+                new SingleItemReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 1B. SingleItem on good input
+    @Ignore
+    @Test
+    public void testSingleItemCorrect() throws Exception {
+        mapReduceTest(
+                new GoodDataSource(TEST_STREAM_FUEL),
+                new SingleItemReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 2A. IndexValuePair on bad input
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testIndexValuePairIncorrect() throws Exception {
+        mapReduceTest(
+                new BadDataSource(TEST_STREAM_FUEL),
+                new IndexValuePairReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 2B. IndexValuePair on good input
+    @Ignore
+    @Test
+    public void testIndexValuePairCorrect() throws Exception {
+        mapReduceTest(
+                new GoodDataSource(TEST_STREAM_FUEL),
+                new IndexValuePairReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 3A. MaxRow on bad input
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testMaxRowIncorrect() throws Exception {
+        mapReduceTest(
+                new BadDataSource(TEST_STREAM_FUEL),
+                new MaxRowReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 3B. MaxRow on good input
+    @Ignore
+    @Test
+    public void testMaxRowCorrect() throws Exception {
+        mapReduceTest(
+                new GoodDataSource(TEST_STREAM_FUEL),
+                new MaxRowReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 4A. FirstN on bad input
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testFirstNIncorrect() throws Exception {
+        mapReduceTest(
+                new BadDataSource(101),
+                new FirstNReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 4B. FirstN on good input
+    @Ignore
+    @Test
+    public void testFirstNCorrect() throws Exception {
+        mapReduceTest(
+                new BadDataSource(10),
+                new FirstNReducer(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 5A. StrConcat with bad equality relation
+    @Ignore
+    @Test(expected = Exception.class)
+    public void testStrConcatIncorrect() throws Exception {
+        mapReduceTest(
+                new BadDataSource(TEST_STREAM_FUEL),
+                new StrConcatReducerV1(),
+                new EmptyDependence<>()
+        );
+    }
+
+    // 5B. StrConcat with overrided equality
+    // TODO
 //    @Test
-//    public void testSingleItemCorrect() throws Exception {
-//        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-//        DataStream<ReducerExamplesItem> input = generateInput(env, "identityMapper");
-//
-//        KeyedStream<ReducerExamplesItem, Integer> seqOutput = identityMapper(input, true);
-//        KeyedStream<ReducerExamplesItem, Integer> parOutput = identityMapper(input, false);
-//
-//        StreamEquivalenceMatcher matcher =
-//                StreamEquivalenceMatcher.createMatcher(seqOutput, parOutput, new EmptyDependence<>());
-//
-//        env.execute();
-//
-//        matcher.assertStreamsAreEquivalent();
+//    public void testFirstNCorrect() throws Exception {
+//        mapReduceTest(
+//                new GoodDataSource(10),
+//                new FirstNReducer(),
+//                new EmptyDependence<>()
+//        );
 //    }
+
+
 }

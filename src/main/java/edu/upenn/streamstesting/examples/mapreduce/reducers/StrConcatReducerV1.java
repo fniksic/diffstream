@@ -1,8 +1,7 @@
-package edu.upenn.streamstesting.examples.mapreduce;
+package edu.upenn.streamstesting.examples.mapreduce.reducers;
 
+import edu.upenn.streamstesting.examples.mapreduce.ReducerExamplesItem;
 import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.common.functions.GroupReduceFunction;
-import org.apache.flink.util.Collector;
 
 /**
  * 5. StrConcatReducer
