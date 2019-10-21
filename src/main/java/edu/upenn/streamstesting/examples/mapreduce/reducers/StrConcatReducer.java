@@ -7,7 +7,7 @@ import org.apache.flink.api.common.functions.AggregateFunction;
  * 5. StrConcatReducer
  * Requires that the consumer of the output does not care about order.
  */
-public class StrConcatReducerV1 implements
+public class StrConcatReducer implements
         AggregateFunction<ReducerExamplesItem, String, String> {
     public String createAccumulator() {
         return "";

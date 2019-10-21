@@ -29,7 +29,7 @@ public class FirstNReducer implements
         Set<ReducerExamplesItem> items = state.f0;
         Integer count = state.f1;
         count++;
-        if (count <= 100) {
+        if (count <= 5) {
             items.add(newItem);
         }
         return new Tuple2<>(items, count);

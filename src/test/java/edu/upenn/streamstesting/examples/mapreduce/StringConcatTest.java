@@ -1,5 +1,7 @@
 package edu.upenn.streamstesting.examples.mapreduce;
 
+// **NOTE: OLD CODE -- See MapReduceNondeterminismTest instead**
+
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.InRange;
 import com.pholser.junit.quickcheck.generator.Size;
