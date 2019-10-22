@@ -195,8 +195,10 @@ under the License.
                                 <excludes>
                                     <exclude>org.apache.flink:force-shading</exclude>
                                     <exclude>com.google.code.findbugs:jsr305</exclude>
+                                    <!--
                                     <exclude>org.slf4j:*</exclude>
                                     <exclude>log4j:*</exclude>
+                                    -->
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -211,13 +213,11 @@ under the License.
                                     </excludes>
                                 </filter>
                             </filters>
-                            <!--
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>edu.upenn.StreamingJob</mainClass>
+                                    <mainClass>edu.upenn.streamstesting.examples.wordcount.WordRepository</mainClass>
                                 </transformer>
                             </transformers>
-                            -->
                         </configuration>
                     </execution>
                 </executions>
