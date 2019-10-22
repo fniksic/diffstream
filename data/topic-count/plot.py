@@ -33,7 +33,7 @@ def plot_execution_times(exec_times):
     fig = plt.figure()
     x = np.linspace(1, len(exec_times), len(exec_times))
     plt.plot(x, exec_times)
-    plt.title("Execution time with different parallelism levels")
+    # plt.title("Execution time with different parallelism levels")
     plt.xlabel("Flink Parallelism")
     plt.ylabel("Execution Time (seconds)")
     # plt.show()

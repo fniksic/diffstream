@@ -38,7 +38,7 @@ def plot_memories_in_time(dir_name, memories):
     fig = plt.figure()
     x = np.linspace(0, len(memories), len(memories))
     plt.plot(x, memories)
-    plt.title("Memory Usage")
+    # plt.title("Memory Usage")
     plt.xlabel("Time (seconds)")
     plt.ylabel("Used Memory (MB)")
     # plt.show()
@@ -68,7 +68,7 @@ def plot_unmatched_in_time(dir_name, unmatched):
     plt.plot(x, left, label='Left')
     plt.plot(x, right, label='Right')
     plt.plot(x, sums, label='Total')
-    plt.title("Unmatched items in time")
+    # plt.title("Unmatched items in time")
     plt.xlabel("Time (seconds)")
     plt.ylabel("Number of unmatched items")
     plt.legend()
@@ -84,7 +84,7 @@ def plot_unmatched_histogram(dir_name, unmatched):
     
     n_bins = 20
     plt.hist(sums, bins=n_bins)
-    plt.title("Histogram of total unmatched items")
+    # plt.title("Histogram of total unmatched items")
     plt.ylabel("Number of samples (taken every 1 second)")
     plt.xlabel("Number of unmatched items")
     # plt.show()
