@@ -33,7 +33,7 @@ under the License.
         <slf4j.version>1.7.28</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <junit.version>4.12</junit.version>
-		<ververica.version>2.9.0</ververica.version>
+		<ververica.version>2.9.1</ververica.version>
 		<junit-quickcheck.version>0.9</junit-quickcheck.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -143,12 +143,12 @@ under the License.
 
         <!-- Include Ververica examples -->
         <dependency>
-            <groupId>com.data-artisans</groupId>
+            <groupId>com.ververica</groupId>
             <artifactId>flink-training-exercises</artifactId>
             <version>${ververica.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.data-artisans</groupId>
+            <groupId>com.ververica</groupId>
             <artifactId>flink-training-exercises</artifactId>
             <version>${ververica.version}</version>
             <scope>test</scope>
