@@ -1,86 +1,95 @@
 package edu.upenn.streamstesting.examples.wordcount;
 
-import edu.upenn.streamstesting.examples.flinktraining.WindowsTest;
-import org.apache.flink.api.java.tuple.Tuple2;
+import edu.upenn.streamstesting.EmptyDependence;
+import edu.upenn.streamstesting.FullDependence;
+import edu.upenn.streamstesting.StreamEquivalenceMatcher;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
+import org.apache.flink.util.Collector;
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
 
 public class WordCountTest {
-    private static final Logger LOG = LoggerFactory.getLogger(WindowsTest.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(WordCountTest.class);
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
             new MiniClusterWithClientResource(
                     new MiniClusterResourceConfiguration.Builder()
                             .setNumberSlotsPerTaskManager(2)
-                            .setNumberTaskManagers(1)
+                            .setNumberTaskManagers(2)
                             .build());
 
-
     @Ignore
-    // @Test
-    public void redisTest () {
-        Jedis jedis = new Jedis("localhost");
-        jedis.set("foo", "bar");
-        String value = jedis.get("foo");
-        System.out.println("Value for foo: " + value);
-        assert(value.equals("bar"));
-    }
-
-    @Ignore
-    // @Test
-    public void redisTest2 () {
-        Jedis jedis = new Jedis("localhost");
-        WordCount wc = new WordCount(jedis);
-        wc.fillJedisManual();
-        String value = jedis.get("haskell");
-        assert(value.equals("science"));
-        String value2 = jedis.get("java");
-        assert(value2.equals("bean"));
-    }
-
-    @Ignore
-    // @Test
-    public void manualWordCountTest() throws Exception {
-
-        // Initialize and fill Jedis
-        WordCount wc = new WordCount();
-        wc.fillJedisManual();
-
-        // Initialize the FLink environment
+    @Test(expected = Exception.class)
+    public void testWordCountSequential() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
 
-        DataStreamSource<String> source = env.fromElements("haskell", "science");
+        env.setParallelism(4);
 
-        DataStream<Tuple2<String, String>> output = wc.sequentialComputation(source);
-
-        output.print();
-
+        DataStream<WordCountItem> inStream = env.fromElements(WordCountItem.class,
+                new Word("a"), new Word("math"), new Word("larry"), new Word("boat"), new EndOfFile(),
+                new Word("math"), new Word("a"), new Word("boat"), new Word("larry"), new EndOfFile());
+        DataStream<String> outStreamSeq = new WordCountSequential().apply(inStream);
+        DataStream<String> outStreamPar = new WordCountSequential(4).apply(inStream);
+        StreamEquivalenceMatcher<String> matcher =
+                StreamEquivalenceMatcher.createMatcher(outStreamSeq, outStreamPar, new FullDependence<>());
         env.execute();
+        matcher.assertStreamsAreEquivalent();
     }
 
     @Ignore
-//    @Test
-    public void wordCountSourceTest() throws Exception {
-
-        // Initialize the FLink environment
+    @Test
+    public void testWordCountParallel() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.setParallelism(4);
 
-        DataStreamSource<String> source = env.addSource(new WordCountSource(10));
-
-        source.print();
-
+        DataStream<WordCountItem> inStream = env.fromElements(WordCountItem.class,
+                new Word("a"), new Word("math"), new Word("larry"), new Word("boat"), new EndOfFile(),
+                new Word("math"), new Word("a"), new Word("boat"), new Word("larry"), new EndOfFile());
+        DataStream<String> outStreamSeq = new WordCountSequential().apply(inStream);
+        DataStream<String> outStreamPar = new WordCountParallel(4).apply(inStream);
+        StreamEquivalenceMatcher<String> matcher =
+                StreamEquivalenceMatcher.createMatcher(outStreamSeq, outStreamPar, new EmptyDependence<>());
         env.execute();
+        matcher.assertStreamsAreEquivalent();
+    }
+
+    @Test
+    public void testWordCountSource() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(4);
+
+        int wordsPerDocument = 10;
+        int totalDocuments = 10;
+        DataStream<Integer> out = env.addSource(new WordCountSource(wordsPerDocument, totalDocuments))
+                .flatMap(new FlatMapFunction<WordCountItem, Integer>() {
+                             @Override
+                             public void flatMap(WordCountItem item, Collector<Integer> collector) throws Exception {
+                                 item.<Void>match(
+                                         word -> {
+                                             collector.collect(1);
+                                             return null;
+                                         },
+                                         endOfFile -> null
+                                 );
+                             }
+                         })
+                .countWindowAll(wordsPerDocument * totalDocuments)
+                .sum(0);
+        DataStream<Integer> expected = env.fromElements(wordsPerDocument * totalDocuments);
+        StreamEquivalenceMatcher<Integer> matcher =
+                StreamEquivalenceMatcher.createMatcher(out, expected, new FullDependence<>());
+        env.execute();
+        matcher.assertStreamsAreEquivalent();
     }
 }
