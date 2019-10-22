@@ -1,20 +1,24 @@
-package edu.upenn.streamstesting.examples.mapreduce;
+package edu.upenn.streamstesting.examples.mapreduce.reducers;
 
-import org.apache.flink.api.common.functions.GroupReduceFunction;
-import org.apache.flink.util.Collector;
+import edu.upenn.streamstesting.examples.mapreduce.ReducerExamplesItem;
+import org.apache.flink.api.common.functions.AggregateFunction;
 
 /**
  * 5. StrConcatReducer
  * Requires that the consumer of the output does not care about order.
  */
 public class StrConcatReducer implements
-    GroupReduceFunction<ReducerExamplesItem, ReducerExamplesItem>
-{
-    @Override
-    public void reduce(Iterable<ReducerExamplesItem> in,
-                       Collector<ReducerExamplesItem> out) {
-        for (ReducerExamplesItem i: in) {
-            out.collect(i);
-        }
+        AggregateFunction<ReducerExamplesItem, String, String> {
+    public String createAccumulator() {
+        return "";
+    }
+    public String add(ReducerExamplesItem newItem, String state) {
+        return state + "@" + newItem.x;
+    }
+    public String getResult(String state) {
+        return state;
+    }
+    public String merge(String ignore1, String ignore2) {
+        throw new RuntimeException("'merge' should not be called");
     }
 }
