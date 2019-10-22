@@ -34,7 +34,7 @@ public class MapReduceNondeterminismTest {
     private static final boolean DEBUG = false;
 
     private static final int TEST_ITERATIONS = 1;
-    private static final int TEST_STREAM_FUEL = 2000;
+    private static final int TEST_STREAM_FUEL = 3000;
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
