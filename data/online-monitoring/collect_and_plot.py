@@ -42,7 +42,7 @@ def plot_memories_in_time(dir_name, memories):
     plt.xlabel("Time (seconds)")
     plt.ylabel("Used Memory (MB)")
     # plt.show()
-    plt.savefig(dir_name + "/used_memory_in_time.png")
+    plt.savefig(dir_name + "/used_memory_in_time.pdf")
     
 def parse_unmatched(dir_name):
     with open(dir_name + "/unmatched-items.txt") as f:
@@ -73,7 +73,7 @@ def plot_unmatched_in_time(dir_name, unmatched):
     plt.ylabel("Number of unmatched items")
     plt.legend()
     # plt.show()
-    plt.savefig(dir_name + "/unmatched_in_time.png")
+    plt.savefig(dir_name + "/unmatched_in_time.pdf")
 
 def plot_unmatched_histogram(dir_name, unmatched):
     fig = plt.figure()
@@ -85,10 +85,10 @@ def plot_unmatched_histogram(dir_name, unmatched):
     n_bins = 20
     plt.hist(sums, bins=n_bins)
     plt.title("Histogram of total unmatched items")
-    plt.ylabel("Number of samples")
-    plt.xlabel("Unmatched items")
+    plt.ylabel("Number of samples (taken every 1 second)")
+    plt.xlabel("Number of unmatched items")
     # plt.show()
-    plt.savefig(dir_name + "/unmatched_histogram.png")
+    plt.savefig(dir_name + "/unmatched_histogram.pdf")
 
 
 ## Yahoo benchmark on the server can run up to 40K input messages per

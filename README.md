@@ -114,6 +114,13 @@ look deeper in them if needed.
   want to deploy a flink program to feel more confident with using
   parallelism.
 
+- We could extend the matcher creation, to have parallel sinks if the 
+  dependence is Empty.
+
+- We could very easily extend the framework to any other stream processing
+  system in Java. All (or most of them) will have some notion of sink, 
+  and that is all we need.
+
 - Documentation for Flink configuration: 
   https://ci.apache.org/projects/flink/flink-docs-stable/dev/execution_configuration.html
 
