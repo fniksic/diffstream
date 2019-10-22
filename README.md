@@ -8,10 +8,10 @@ executing the following command in the top directory.
 
 ```sh
 mvn install:install-file \
-    -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.0.jar \
+    -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.1.jar \
     -DpomFile=flink-training-exercises/pom.xml \
-    -Dsources=flink-training-exercises/target/flink-training-exercises-2.9.0-sources.jar \
-    -Djavadoc=flink-training-exercises/target/flink-training-exercises-2.9.0-javadoc.jar
+    -Dsources=flink-training-exercises/target/flink-training-exercises-2.9.1-sources.jar \
+    -Djavadoc=flink-training-exercises/target/flink-training-exercises-2.9.1-javadoc.jar
 ```
 
 That finishes the installation. To see if everything is working, run `mvn test`.
