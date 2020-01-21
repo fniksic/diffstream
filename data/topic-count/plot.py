@@ -32,6 +32,9 @@ def parse_exec_time_line(line):
 def plot_execution_times(exec_times):
     fig = plt.figure()
     x = np.linspace(1, len(exec_times), len(exec_times))
+    print(x, exec_times)
+    speedups = [exec_times[0] / et for et in exec_times]
+    print("Speedups:", speedups)
     plt.plot(x, exec_times)
     # plt.title("Execution time with different parallelism levels")
     plt.xlabel("Flink Parallelism")
