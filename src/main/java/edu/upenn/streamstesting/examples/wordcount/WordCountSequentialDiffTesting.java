@@ -4,6 +4,7 @@ import edu.upenn.streamstesting.FullDependence;
 import edu.upenn.streamstesting.StreamsNotEquivalentException;
 import edu.upenn.streamstesting.remote.RemoteMatcherFactory;
 import edu.upenn.streamstesting.remote.RemoteStreamEquivalenceMatcher;
+import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -30,10 +31,10 @@ public class WordCountSequentialDiffTesting {
         RemoteStreamEquivalenceMatcher<String> matcher =
                 RemoteMatcherFactory.getInstance().createMatcher(outStreamExpected, outStreamParallel, new FullDependence<>());
 
-        long startTime = System.nanoTime();
         try {
-            env.execute();
+            JobExecutionResult result = env.execute();
             matcher.assertStreamsAreEquivalent();
+            LOG.info("Total time: {} ms", result.getNetRuntime(TimeUnit.MILLISECONDS));
         } catch (Exception e) {
             if (e instanceof StreamsNotEquivalentException ||
                     e.getCause() instanceof StreamsNotEquivalentException ||
@@ -43,9 +44,6 @@ public class WordCountSequentialDiffTesting {
                 throw e;
             }
         }
-        long totalTime = System.nanoTime() - startTime;
-
-        LOG.info("Total time: {} ms", TimeUnit.NANOSECONDS.toMillis(totalTime));
 
         RemoteMatcherFactory.destroy();
     }

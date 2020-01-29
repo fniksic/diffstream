@@ -11,6 +11,16 @@ public class SumValuesSequentially implements FlinkProgram<DataItem, Integer>, S
 
     private static final long serialVersionUID = 8796869879965796517L;
 
+    private int parallelism;
+
+    public SumValuesSequentially() {
+        this(1);
+    }
+
+    public SumValuesSequentially(int parallelism) {
+        this.parallelism = parallelism;
+    }
+
     @Override
     public DataStream<Integer> apply(DataStream<DataItem> inputStream) {
         return inputStream.flatMap(new FlatMapFunction<DataItem, Integer>() {
@@ -24,6 +34,6 @@ public class SumValuesSequentially implements FlinkProgram<DataItem, Integer>, S
                     collector.collect(sum);
                 }
             }
-        }).setParallelism(1);
+        }).setParallelism(parallelism);
     }
 }

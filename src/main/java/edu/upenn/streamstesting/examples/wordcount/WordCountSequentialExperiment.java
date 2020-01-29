@@ -1,5 +1,6 @@
 package edu.upenn.streamstesting.examples.wordcount;
 
+import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
@@ -21,10 +22,8 @@ public class WordCountSequentialExperiment {
                 env.addSource(new WordCountSource(conf.getWordsPerDocument(), conf.getTotalDocuments()));
         new WordCountSequential().apply(inStream);
 
-        long startTime = System.nanoTime();
-        env.execute();
-        long totalTime = System.nanoTime() - startTime;
+        JobExecutionResult result = env.execute();
 
-        LOG.info("Total time: {} ms", TimeUnit.NANOSECONDS.toMillis(totalTime));
+        LOG.info("Total time: {} ms", result.getNetRuntime(TimeUnit.MILLISECONDS));
     }
 }
