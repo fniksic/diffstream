@@ -38,7 +38,7 @@ import static org.junit.Assert.assertFalse;
 
 public class KeyByParallelismTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WindowsTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KeyByParallelismTest.class);
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =

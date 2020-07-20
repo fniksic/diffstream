@@ -27,16 +27,14 @@ under the License.
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.9.0</flink.version>
-        <java.version>1.8</java.version>
-        <scala.binary.version>2.11</scala.binary.version>
-        <slf4j.version>1.7.28</slf4j.version>
+        <maven.compiler.release>11</maven.compiler.release>
+        <flink.version>1.10.1</flink.version>
+        <scala.binary.version>2.12</scala.binary.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
-        <junit.version>4.12</junit.version>
-		<ververica.version>2.9.1</ververica.version>
+        <junit.version>4.13</junit.version>
+		<ververica.version>3.1.1</ververica.version>
 		<junit-quickcheck.version>0.9</junit-quickcheck.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
     <repositories>
@@ -61,12 +59,32 @@ under the License.
             <artifactId>flink-java</artifactId>
             <version>${flink.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
             <version>${flink.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Add connector dependencies here. They must be in the default scope (compile). -->
@@ -91,7 +109,7 @@ under the License.
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <version>${log4j.version}</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -106,6 +124,16 @@ under the License.
             <artifactId>flink-test-utils_${scala.binary.version}</artifactId>
             <version>${flink.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -113,13 +141,16 @@ under the License.
             <version>${flink.version}</version>
             <scope>test</scope>
             <classifier>tests</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-runtime-web_${scala.binary.version}</artifactId>
-            <version>${flink.version}</version>
-            <scope>test</scope>
-            <classifier>tests</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -127,6 +158,16 @@ under the License.
             <version>${flink.version}</version>
             <scope>test</scope>
             <classifier>tests</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Include JUnit Quickcheck dependencies for input generation -->
@@ -158,7 +199,7 @@ under the License.
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>3.1.0</version>
+            <version>3.3.0</version>
         </dependency>
     </dependencies>
 
@@ -169,7 +210,7 @@ under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -181,7 +222,7 @@ under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.2.4</version>
                 <executions>
                     <!-- Run shade goal on package phase -->
                     <execution>
@@ -289,12 +330,32 @@ under the License.
                     <artifactId>flink-java</artifactId>
                     <version>${flink.version}</version>
                     <scope>compile</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>log4j</groupId>
+                            <artifactId>log4j</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.logging.log4j</groupId>
+                            <artifactId>log4j-slf4j-impl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.flink</groupId>
                     <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
                     <version>${flink.version}</version>
                     <scope>compile</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>log4j</groupId>
+                            <artifactId>log4j</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>org.apache.logging.log4j</groupId>
+                            <artifactId>log4j-slf4j-impl</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>
