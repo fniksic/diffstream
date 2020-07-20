@@ -21,6 +21,7 @@ public class SumValuesInParallel implements FlinkProgram<DataItem, Integer>, Ser
     private int parallelism;
 
     public SumValuesInParallel() {
+        this(1);
     }
 
     public SumValuesInParallel(int parallelism) {

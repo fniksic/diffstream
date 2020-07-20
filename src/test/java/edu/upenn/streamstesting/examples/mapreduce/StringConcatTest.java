@@ -1,5 +1,7 @@
 package edu.upenn.streamstesting.examples.mapreduce;
 
+// **NOTE: OLD CODE -- See MapReduceNondeterminismTest instead**
+
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.InRange;
 import com.pholser.junit.quickcheck.generator.Size;
@@ -141,9 +143,6 @@ public class StringConcatTest {
         // if one knows exactly which generator they want. Then, they can just initialize it.
         InputGenerator<DataStream<Tuple2<Integer, String>>> inputGen =
                 new InputGenerator(env);
-
-        Class[] cArg = new Class[1];
-        cArg[0] = DataStream.class;
 
         Method testMethod = getClass().getMethod(methodName, DataStream.class, Boolean.class);
 

@@ -66,6 +66,7 @@ public class RemoteTest {
         matcher.assertStreamsAreEquivalent();
         RemoteMatcherFactory.destroy();
     }
+
     @Ignore
     @Test
     public void testRemoteIncDecEquivalentLogUnmatched() throws Exception {

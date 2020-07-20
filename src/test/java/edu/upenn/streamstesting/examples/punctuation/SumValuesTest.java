@@ -1,6 +1,5 @@
 package edu.upenn.streamstesting.examples.punctuation;
 
-import edu.upenn.streamstesting.FullDependence;
 import edu.upenn.streamstesting.StreamEquivalenceMatcher;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
@@ -23,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SumValuesTest {
 
-    private static final int PARALLELISM = 2;
+    private static final int PARALLELISM = 3;
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
@@ -43,12 +42,12 @@ public class SumValuesTest {
         DataStream<DataItem> inputStream = env.fromElements(DataItem.class,
                 new Value(1), new Value(7), new Value(-2), new Value(5), new Value(-10), new Barrier(),
                 new Value(3), new Value(-1), new Value(2), new Value(4), new Value(-6), new Barrier());
+
         DataStream<Integer> outputStream = new SumValuesInParallel(PARALLELISM).apply(inputStream);
         DataStream<Integer> expectedStream = env.fromElements(1, 3);
 
-        StreamEquivalenceMatcher<Integer> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
-        outputStream.addSink(matcher.getSinkLeft()).setParallelism(1);
-        expectedStream.addSink(matcher.getSinkRight()).setParallelism(1);
+        StreamEquivalenceMatcher<Integer> matcher =
+                StreamEquivalenceMatcher.createMatcher(outputStream, expectedStream, (x, y) -> true);
 
         env.execute();
 
@@ -62,12 +61,12 @@ public class SumValuesTest {
         DataStream<DataItem> inputStream = env.fromElements(DataItem.class,
                 new Value(1), new Value(7), new Value(-2), new Value(5), new Value(-10), new Barrier(),
                 new Value(3), new Value(-1), new Value(2), new Value(4), new Value(-6), new Barrier());
+
         DataStream<Integer> outputStream = new SumValuesSequentially().apply(inputStream);
         DataStream<Integer> expectedStream = env.fromElements(1, 3);
 
-        StreamEquivalenceMatcher<Integer> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
-        outputStream.addSink(matcher.getSinkLeft()).setParallelism(1);
-        expectedStream.addSink(matcher.getSinkRight()).setParallelism(1);
+        StreamEquivalenceMatcher<Integer> matcher =
+                StreamEquivalenceMatcher.createMatcher(outputStream, expectedStream, (x, y) -> true);
 
         env.execute();
 
@@ -84,12 +83,34 @@ public class SumValuesTest {
         DataStream<DataItem> inputStream = env.fromElements(DataItem.class,
                 new Value(1), new Value(7), new Value(-2), new Value(5), new Value(-10), new Barrier(),
                 new Value(3), new Value(-1), new Value(2), new Value(4), new Value(-6), new Barrier());
+
         DataStream<Integer> sequentialOutput = new SumValuesSequentially().apply(inputStream);
         DataStream<Integer> parallelOutput = new SumValuesInParallel(PARALLELISM).apply(inputStream);
 
-        StreamEquivalenceMatcher<Integer> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
-        sequentialOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
-        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
+        StreamEquivalenceMatcher<Integer> matcher =
+                StreamEquivalenceMatcher.createMatcher(sequentialOutput, parallelOutput, (x, y) -> true);
+
+        env.execute();
+
+        matcher.assertStreamsAreEquivalent();
+    }
+
+    @Test(expected = Exception.class)
+    public void testDifferentialSeq() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.setParallelism(PARALLELISM);
+
+        DataStream<DataItem> inputStream = env.fromElements(DataItem.class,
+                new Value(1), new Value(7), new Value(-2), new Value(5), new Value(-10), new Barrier(),
+                new Value(3), new Value(-1), new Value(2), new Value(4), new Value(-6), new Barrier());
+
+        DataStream<Integer> sequentialOutput = new SumValuesSequentially().apply(inputStream);
+        DataStream<Integer> parallelOutput = new SumValuesSequentially(PARALLELISM).apply(inputStream);
+
+        StreamEquivalenceMatcher<Integer> matcher =
+                StreamEquivalenceMatcher.createMatcher(sequentialOutput, parallelOutput, (x, y) -> true);
 
         env.execute();
 
@@ -109,51 +130,59 @@ public class SumValuesTest {
 
         DataStream<DataItem> timedStream =
                 stream.assignTimestampsAndWatermarks(new AssignerWithPunctuatedWatermarks<DataItem>() {
-            private long barrierCount = 0;
+                    private long barrierCount = 0;
 
-            @Nullable
-            @Override
-            public Watermark checkAndGetNextWatermark(DataItem dataItem, long extractedTimestamp) {
-                if (dataItem instanceof Barrier) {
-                    barrierCount++;
-                    return new Watermark(extractedTimestamp);
-                }
-                return null;
-            }
+                    @Nullable
+                    @Override
+                    public Watermark checkAndGetNextWatermark(DataItem dataItem, long extractedTimestamp) {
+                        if (dataItem instanceof Barrier) {
+                            barrierCount++;
+                            return new Watermark(extractedTimestamp);
+                        }
+                        return null;
+                    }
 
-            @Override
-            public long extractTimestamp(DataItem dataItem, long previousElementTimestamp) {
-                return barrierCount;
-            }
-        });
+                    @Override
+                    public long extractTimestamp(DataItem dataItem, long previousElementTimestamp) {
+                        return barrierCount;
+                    }
+                });
 
         DataStream<ValueWithId> wrappedStream = timedStream
                 .flatMap(new FlatMapFunction<DataItem, ValueWithId>() {
-            private long count = 0L;
+                    private long count = 0L;
 
-            @Override
-            public void flatMap(DataItem dataItem, Collector<ValueWithId> collector) throws Exception {
-                if (dataItem instanceof Value) {
-                    int val = ((Value) dataItem).getVal();
-                    collector.collect(new ValueWithId(val, count++));
-                }
-            }
-        }).setParallelism(1);
+                    @Override
+                    public void flatMap(DataItem dataItem, Collector<ValueWithId> collector) throws Exception {
+                        if (dataItem instanceof Value) {
+                            int val = ((Value) dataItem).getVal();
+                            collector.collect(new ValueWithId(val, count++));
+                        }
+                    }
+                }).setParallelism(1);
 
         DataStream<Integer> partialSums = wrappedStream.keyBy(x -> x.getId() % PARALLELISM)
                 .timeWindow(Time.of(1L, TimeUnit.MILLISECONDS))
                 .aggregate(new AggregateFunction<ValueWithId, Integer, Integer>() {
                     @Override
-                    public Integer createAccumulator() { return 0; }
+                    public Integer createAccumulator() {
+                        return 0;
+                    }
 
                     @Override
-                    public Integer add(ValueWithId valueWithId, Integer acc) { return acc + valueWithId.getVal(); }
+                    public Integer add(ValueWithId valueWithId, Integer acc) {
+                        return acc + valueWithId.getVal();
+                    }
 
                     @Override
-                    public Integer getResult(Integer acc) { return acc; }
+                    public Integer getResult(Integer acc) {
+                        return acc;
+                    }
 
                     @Override
-                    public Integer merge(Integer acc1, Integer acc2) { return acc1 + acc2; }
+                    public Integer merge(Integer acc1, Integer acc2) {
+                        return acc1 + acc2;
+                    }
                 })
                 .timeWindowAll(Time.of(1L, TimeUnit.MILLISECONDS))
                 .reduce((x, y) -> x + y);
@@ -178,8 +207,12 @@ public class SumValuesTest {
             this.id = id;
         }
 
-        public int getVal() { return val; }
+        public int getVal() {
+            return val;
+        }
 
-        public long getId() { return id; }
+        public long getId() {
+            return id;
+        }
     }
 }
