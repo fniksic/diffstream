@@ -4,13 +4,19 @@ import edu.upenn.streamstesting.Dependence;
 import edu.upenn.streamstesting.StreamsNotEquivalentException;
 import edu.upenn.streamstesting.poset.Element;
 import edu.upenn.streamstesting.poset.Poset;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.rmi.RemoteException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements RemoteMatcher<IN> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteStreamEquivalenceMatcher.class);
 
     private static final AtomicLong matcherCount = new AtomicLong(0L);
 
@@ -18,6 +24,11 @@ public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements 
     private final Poset<IN> unmatchedItemsLeft;
     private final Poset<IN> unmatchedItemsRight;
     private boolean detectedNonEquivalence = false;
+
+    // Statistics
+    private int processedItems = 0;
+    private long totalProcessingDuration = 0;
+    private long maxProcessingDuration = 0;
 
     public RemoteStreamEquivalenceMatcher(Dependence<IN> dependence) {
         this.id = matcherCount.incrementAndGet();
@@ -54,11 +65,31 @@ public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements 
 
     @Override
     public synchronized void processItem(IN item, boolean left) throws RemoteException, StreamsNotEquivalentException {
-        if (left) {
-            processItem(item, unmatchedItemsLeft, unmatchedItemsRight);
-        } else {
-            processItem(item, unmatchedItemsRight, unmatchedItemsLeft);
+        final Instant start = Instant.now();
+        try {
+            if (left) {
+                processItem(item, unmatchedItemsLeft, unmatchedItemsRight);
+            } else {
+                processItem(item, unmatchedItemsRight, unmatchedItemsLeft);
+            }
         }
+        finally {
+            final long duration = start.until(Instant.now(), ChronoUnit.NANOS);
+            processedItems++;
+            totalProcessingDuration += duration;
+            maxProcessingDuration = Math.max(maxProcessingDuration, duration);
+        }
+    }
+
+    private synchronized String getStats() {
+        final long avgDuration = processedItems == 0 ? 0 : totalProcessingDuration / processedItems;
+        return "Unmatched items:" +
+                " left: " + unmatchedItemsLeft.size() +
+                " right: " + unmatchedItemsRight.size() +
+                " totalProcessed: " + processedItems +
+                " totalDuration (ns): " + totalProcessingDuration +
+                " avgDuration (ns): " + avgDuration +
+                " maxDuration (ns): " + maxProcessingDuration;
     }
 
     private void processItem(IN item, Poset<IN> myUnmatchedItems, Poset<IN> otherUnmatchedItems) throws StreamsNotEquivalentException {
@@ -90,25 +121,24 @@ public class RemoteStreamEquivalenceMatcher<IN extends Serializable> implements 
     public void logItems() {
         PrintWriter pw = null;
 
-        System.out.println(" -- -- -- Matcher Thread -- -- -- ");
+        LOG.info(" -- -- -- Matcher Thread -- -- -- ");
         try {
             File file = new File("unmatched-items.txt");
-            System.out.println("File writable: " + file.canWrite());
+            LOG.info("File writable: " + file.canWrite());
             file.setWritable(true);
             FileWriter fw = new FileWriter(file);
             pw = new PrintWriter(fw);
             while(true) {
-                int leftUnmatched = unmatchedItemsLeft.size();
-                int rightUnmatched = unmatchedItemsRight.size();
-                pw.println("Unmatched items: left: " + leftUnmatched + " right: " + rightUnmatched);
+                final String stats = getStats();
+                pw.println(stats);
                 pw.flush();
-                System.out.println("Unmatched items: left: " + leftUnmatched + " right: " + rightUnmatched);
+                LOG.info(stats);
                 TimeUnit.SECONDS.sleep(1);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("IOException", e);
         } catch (InterruptedException e) {
-            System.out.println(" !! !! [ERROR] Thread got interrupted!");
+            LOG.error(" !! !! [ERROR] Thread got interrupted!", e);
         } finally {
             if (pw != null) {
                 pw.close();
