@@ -58,9 +58,9 @@ docker run -d --name orientdb -p 2424:2424 -p 2480:2480 -e ORIENTDB_ROOT_PASSWOR
 
 In order to run experiments on a standalone Flink cluster, we need
 to use the sinks and matchers that communicate via Java RMI. These
-are located in the package `edu.upenn.streamstesting.remote`. An
+are located in the package `edu.upenn.diffstream.remote`. An
 example of using the remote matcher can be found in
-`edu.upenn.streamstesting.remote.RemoteTest`; the test itself still
+`edu.upenn.diffstream.remote.RemoteTest`; the test itself still
 runs on the `MiniClusterWithClientResource`, but it uses Java RMI.
 
 Before using the remote matcher, it is necessary to start the

@@ -6,14 +6,20 @@
         <artifactId>diffstream-parent</artifactId>
         <groupId>edu.upenn</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>parent</relativePath>
+        <relativePath>../parent</relativePath>
     </parent>
 
-    <artifactId>diffstream</artifactId>
+    <artifactId>diffstream-tutorial</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>edu.upenn</groupId>
+            <artifactId>diffstream</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Apache Flink dependencies -->
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -38,9 +44,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-test-utils_${scala.binary.version}</artifactId>
@@ -54,16 +58,6 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
             <classifier>tests</classifier>
-        </dependency>
-
-        <!-- Include JUnit Quickcheck dependencies for input generation -->
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-generators</artifactId>
         </dependency>
     </dependencies>
 </project>

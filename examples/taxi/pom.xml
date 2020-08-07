@@ -1,0 +1,32 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>diffstream-examples</artifactId>
+        <groupId>edu.upenn</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>diffstream-taxi</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Include JUnit Quickcheck dependencies for input generation -->
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-generators</artifactId>
+        </dependency>
+
+        <!-- Include Ververica examples -->
+        <dependency>
+            <groupId>com.ververica</groupId>
+            <artifactId>flink-training-exercises</artifactId>
+        </dependency>
+    </dependencies>
+</project>
