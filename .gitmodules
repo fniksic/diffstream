@@ -1,12 +1,6 @@
-[submodule "junit-quickcheck"]
-	path = junit-quickcheck
-	url = git@github.com:angelhof/junit-quickcheck.git
 [submodule "flink-training-exercises"]
 	path = flink-training-exercises
 	url = git@github.com:angelhof/flink-training-exercises.git
 [submodule "streaming-benchmarks"]
 	path = streaming-benchmarks
 	url = git@github.com:angelhof/streaming-benchmarks.git
-[submodule "yahoo-streaming-benchmark"]
-	path = yahoo-streaming-benchmark
-	url = git@github.com:angelhof/yahoo-streaming-benchmark.git
