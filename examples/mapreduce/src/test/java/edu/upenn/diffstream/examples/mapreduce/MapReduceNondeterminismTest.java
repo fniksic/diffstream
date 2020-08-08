@@ -62,29 +62,6 @@ public class MapReduceNondeterminismTest {
         return mapped.keyBy(x -> x.key);
     }
 
-/*
-    public DataStream<ReducerExamplesItem> generateInput(StreamExecutionEnvironment env, String methodName)
-            throws NoSuchMethodException {
-
-        // Step 1: set up input generator
-        // Note: All these lines can be circumvented if one knows exactly which generator they want.
-        // Then, they can just initialize it using the Step 2 code below.
-        InputGenerator<DataStream<ReducerExamplesItem>> inputGen =
-                new InputGenerator(env);
-        Class[] cArg = new Class[1];
-        cArg[0] = DataStream.class;
-        Method testMethod = getClass().getMethod(methodName, DataStream.class, Boolean.class);
-        Parameter parameter = testMethod.getParameters()[0];
-
-        // Step 2: make input stream using generator
-        Generator<DataStream<ReducerExamplesItem>> generator =
-                (Generator<DataStream<ReducerExamplesItem>>) inputGen.parameterGenerator(parameter);
-        DataStream<ReducerExamplesItem> stream = inputGen.generate(generator);
-
-        return stream;
-    }
-*/
-
     public <T> DataStream<T> printMapper(String info, DataStream<T> inStream) {
         return inStream.map(new MapFunction<>() {
             @Override
