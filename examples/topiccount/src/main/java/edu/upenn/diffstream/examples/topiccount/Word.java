@@ -34,4 +34,5 @@ public class Word implements TopicCountItem {
     public int hashCode() {
         return Objects.hash(word);
     }
+
 }

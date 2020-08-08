@@ -65,4 +65,5 @@ public class TopicCountSequential implements FlinkProgram<TopicCountItem, String
             }
         }).setParallelism(parallelism);
     }
+
 }

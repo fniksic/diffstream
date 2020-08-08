@@ -39,4 +39,5 @@ public class TopicCountSource implements SourceFunction<TopicCountItem> {
     public void cancel() {
         isRunning = false;
     }
+
 }

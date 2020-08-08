@@ -30,7 +30,7 @@ public class TopicCountParallel implements FlinkProgram<TopicCountItem, String>,
 
     @Override
     public DataStream<String> apply(DataStream<TopicCountItem> inputStream) {
-        return inputStream.assignTimestampsAndWatermarks(new EndOfFileToWatermarkAssigner()).setParallelism(1)
+        return inputStream.assignTimestampsAndWatermarks(new EndOfFileToWatermarkAssigner())
                 .flatMap(new FlatMapFunction<TopicCountItem, Word>() {
                     @Override
                     public void flatMap(TopicCountItem item, Collector<Word> collector) {
@@ -42,7 +42,7 @@ public class TopicCountParallel implements FlinkProgram<TopicCountItem, String>,
                                 endOfFile -> null
                         );
                     }
-                })
+                }).setParallelism(parallelism)
                 .map(new RichMapFunction<Word, Tuple2<Word, String>>() {
                     Jedis jedis = null;
 
@@ -56,10 +56,10 @@ public class TopicCountParallel implements FlinkProgram<TopicCountItem, String>,
                         String topic = WordRepository.lookupTopic(jedis, word.getWord());
                         return Tuple2.of(word, topic);
                     }
-                })
+                }).setParallelism(parallelism)
                 .keyBy(word -> word.hashCode() % parallelism)
                 .timeWindow(Time.milliseconds(1L))
-                .aggregate(new TopicAggregator())
+                .aggregate(new TopicAggregator()).setParallelism(parallelism)
                 .timeWindowAll(Time.milliseconds(1L))
                 .reduce(TopicCountParallel::mergeTopicCounts)
                 .map(TopicCountParallel::mostFrequentTopic);
@@ -130,4 +130,5 @@ public class TopicCountParallel implements FlinkProgram<TopicCountItem, String>,
             return mergeTopicCounts(topicCount1, topicCount2);
         }
     }
+
 }

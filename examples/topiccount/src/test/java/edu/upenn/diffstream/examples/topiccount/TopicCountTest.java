@@ -13,12 +13,8 @@ import org.apache.flink.util.Collector;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TopicCountTest {
-
-    private static final Logger LOG = LoggerFactory.getLogger(TopicCountTest.class);
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
@@ -33,7 +29,7 @@ public class TopicCountTest {
     public void testWordCountSequential() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        env.setParallelism(4);
+        env.setParallelism(1);
 
         DataStream<TopicCountItem> inStream = env.fromElements(TopicCountItem.class,
                 new Word("a"), new Word("math"), new Word("larry"), new Word("boat"), new EndOfFile(),
@@ -51,7 +47,7 @@ public class TopicCountTest {
     public void testWordCountParallel() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        env.setParallelism(4);
+        env.setParallelism(1);
 
         DataStream<TopicCountItem> inStream = env.fromElements(TopicCountItem.class,
                 new Word("a"), new Word("math"), new Word("larry"), new Word("boat"), new EndOfFile(),
@@ -64,6 +60,7 @@ public class TopicCountTest {
         matcher.assertStreamsAreEquivalent();
     }
 
+    @Ignore
     @Test
     public void testWordCountSource() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -73,17 +70,17 @@ public class TopicCountTest {
         int totalDocuments = 10;
         DataStream<Integer> out = env.addSource(new TopicCountSource(wordsPerDocument, totalDocuments))
                 .flatMap(new FlatMapFunction<TopicCountItem, Integer>() {
-                             @Override
-                             public void flatMap(TopicCountItem item, Collector<Integer> collector) {
-                                 item.<Void>match(
-                                         word -> {
-                                             collector.collect(1);
-                                             return null;
-                                         },
-                                         endOfFile -> null
-                                 );
-                             }
-                         })
+                    @Override
+                    public void flatMap(TopicCountItem item, Collector<Integer> collector) {
+                        item.<Void>match(
+                                word -> {
+                                    collector.collect(1);
+                                    return null;
+                                },
+                                endOfFile -> null
+                        );
+                    }
+                })
                 .countWindowAll(wordsPerDocument * totalDocuments)
                 .sum(0);
         DataStream<Integer> expected = env.fromElements(wordsPerDocument * totalDocuments);

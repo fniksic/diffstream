@@ -12,8 +12,8 @@ import java.nio.file.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class WordRepository {
@@ -91,16 +91,16 @@ public class WordRepository {
      * @param args
      */
     public static void main(String[] args) {
-        Random random = new Random();
+        System.out.println("Populating Redis database with words and topics. " +
+                "Make sure Redis is running on " + REDIS_HOST + ".");
         initFileSystem();
         try (Jedis jedis = new Jedis(REDIS_HOST)) {
+            var indexIterator = IntStream.iterate(0, i -> (i + 1) % TOPICS.size()).iterator();
             getWordStream()
                     .map(WordRepository::prependKeyPrefix)
-                    .forEach(word -> {
-                        int nextTopic = random.nextInt(TOPICS.size());
-                        jedis.set(word, TOPICS.get(nextTopic));
-                    });
+                    .forEach(word -> jedis.set(word, TOPICS.get(indexIterator.nextInt())));
         }
         closeFileSystem();
     }
+
 }
