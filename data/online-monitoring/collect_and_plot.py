@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -21,6 +22,12 @@ plt.rcParams['font.family'] = 'STIXGeneral'
 # dir_name = "server_debug_memory/"
 dir_name = "server_load_30000_time_7200_leftpar_2_rightpar_2/"
 
+if(not len(sys.argv) == 2):
+    print("Wrong arguments")
+    print("You should call this as: `python3 collect_and_plot.py <results_dir>`")
+    exit(1)
+
+dir_name = sys.argv[1]
 
 def parse_memories(dir_name):
     with open(dir_name + "/memory-log.txt") as f:
