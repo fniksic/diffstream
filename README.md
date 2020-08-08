@@ -2,23 +2,46 @@
 
 A differential testing library for [Apache Flink](https://flink.apache.org/).
 
-Note: This project is in an early stage of development. Stay tuned for updates!
+## Installing Java 11 and Maven
+
+You will need Java version 11.
+
+- On Linux systems, check if java is installed with `java -version` and `javac -version`. Both commands should output version 11. If not, run `sudo apt install openjdk-11-jdk`, `sudo apt install default-jdk`, and finally `sudo update-alternatives --config java` to select version 11 as the default.
+
+  Next, make sure the `JAVA_HOME` environment variable points to the correct version of Java. To check if it is set, run `echo $JAVA_HOME` (look for `java-11` in the output). Otherwise, set it with `export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64/"` (or the path to wherever Java 11 is installed. Add this line to `~/.bashrc` so that it runs automatically whenever you open a terminal.
+
+  Finally, Maven needs to be installed and point to Java 11: `mvn --version` should show Java version 11. If it doesn't work, install with `sudo apt install maven`, and also ensure that `JAVA_HOME` is set correctly.
 
 ## Installing the flink-training-exercises package
 
-First run `git submodule init` and `git submodule update` in `flink-training-exercises` to obtain the source code.
-Then build the code by running `mvn clean package`. Finally, install the package in the local Maven repository by
-executing the following command in the top directory.
+Inside the `flink-training-exercises` subdirectory (`cd flink-training-exercises`), run `git submodule init` and `git submodule update`. Then build the code by running `mvn clean package`.
+
+Back in the top-level directory (`cd ..`), install the package in the local Maven repository by executing the following command:
 
 ```sh
 mvn install:install-file \
-    -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.1.jar \
+    -Dfile=flink-training-exercises/target/flink-training-exercises-3.1.1.jar \
     -DpomFile=flink-training-exercises/pom.xml \
-    -Dsources=flink-training-exercises/target/flink-training-exercises-2.9.1-sources.jar \
-    -Djavadoc=flink-training-exercises/target/flink-training-exercises-2.9.1-javadoc.jar
+    -Dsources=flink-training-exercises/target/flink-training-exercises-3.1.1-sources.jar
 ```
 
 That finishes the installation. To see if everything is working, run `mvn test`.
+
+## Installing DiffStream
+
+Make sure that you have installed `flink-training-exercises` as described above.
+
+Then run `mvn clean package` to build DiffStream.
+
+Then install it by running:
+
+```sh
+
+cd parent
+mvn install
+cd ..
+mvn install
+```
 
 ## Installing Redis
 

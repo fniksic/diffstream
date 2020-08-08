@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -21,6 +22,12 @@ plt.rcParams['font.family'] = 'STIXGeneral'
 # dir_name = "server_debug_memory/"
 dir_name = "server_load_30000_time_7200_leftpar_2_rightpar_2/"
 
+if(not len(sys.argv) == 2):
+    print("Wrong arguments")
+    print("You should call this as: `python3 collect_and_plot.py <results_dir>`")
+    exit(1)
+
+dir_name = sys.argv[1]
 
 def parse_memories(dir_name):
     with open(dir_name + "/memory-log.txt") as f:
@@ -54,7 +61,7 @@ def parse_unmatched(dir_name):
 
 def parse_unmatched_line(line):
     unmatched_left = line.split(": ")[2].split(" ")[0]
-    unmatched_right = line.split(": ")[3].rstrip()
+    unmatched_right = line.split(": ")[3].split(" ")[0].rstrip()
     return (int(unmatched_left), int(unmatched_right))
 
 def plot_unmatched_in_time(dir_name, unmatched):
@@ -64,7 +71,7 @@ def plot_unmatched_in_time(dir_name, unmatched):
     left = list(left_right[0])
     right = list(left_right[1])
     sums = [l + r for l, r in unmatched]
-    print(left[:100])
+    # print(left[:100])
     plt.plot(x, left, label='Left')
     plt.plot(x, right, label='Right')
     plt.plot(x, sums, label='Total')
