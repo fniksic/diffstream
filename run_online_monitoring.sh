@@ -19,7 +19,10 @@ RESULTS_DIR="${RESULTS_PARENT_DIR}/${RESULTS_DIR_NAME}"
 
 cd streaming-benchmarks/
 
-echo "Stopping anything that could be running"
+## A word of warning
+echo "Please don't interrupt this script mid-execution or all hell could break loose :'("
+
+echo "Stopping anything that could be running... be patient, this could take a couple minutes"
 ./flink-bench.sh STOP_ALL > /dev/null 2>&1
 
 ## Run the test
@@ -34,16 +37,17 @@ LOAD=${LOAD} TEST_TIME=${TEST_TIME} ./flink-bench.sh FLINK_TEST 1> ${STDOUT_LOG}
 ## TODO: Figure out if this could affect anything.
 
 ## Stop everything
-echo "Stopping everything"
+echo "Stopping everything... be patient, this could take a couple minutes"
 ./flink-bench.sh STOP_ALL > /dev/null 2>&1
 
 ## Make a directory to store the results
-echo "Store the results in ${RESULTS_DIR}"
+echo "Storing the results in ${RESULTS_DIR}"
 mkdir -p "../${RESULTS_DIR}"
 cp memory-log.txt "../${RESULTS_DIR}/"
 cp unmatched-items.txt "../${RESULTS_DIR}/"
 
 ## Plot the results
+echo "Producing plots..."
 cd "../${RESULTS_PARENT_DIR}"
 python3 collect_and_plot.py "${RESULTS_DIR_NAME}"
 cd ../../
