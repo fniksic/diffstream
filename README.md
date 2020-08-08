@@ -2,7 +2,15 @@
 
 A differential testing library for [Apache Flink](https://flink.apache.org/).
 
-Note: This project is in an early stage of development. Stay tuned for updates!
+## Installing Java and Maven
+
+You will need Java version 11.
+
+- On Linux systems, check if java is installed with `java -version` and `javac -version`. Both commands should output version 11. If not, run `sudo apt install openjdk-11-jdk`, `sudo apt install default-jdk`, and finally `sudo update-alternatives --config java` to select version 11 as the default.
+
+  Next, make sure the `JAVA_HOME` environment variable points to the correct version of Java. To check if it is set, run `echo $JAVA_HOME` (look for `java-11` in the output). Otherwise, set it with `export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64/"` (or the path to wherever Java 11 is installed. Add this line to `~/.bashrc` so that it runs automatically whenever you open a terminal.
+
+  Finally, Maven needs to be installed and point to Java 11: `mvn --version` should show Java version 11. If it doesn't work, install with `sudo apt install maven`, and also ensure that `JAVA_HOME` is set correctly.
 
 ## Installing the flink-training-exercises package
 
