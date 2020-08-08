@@ -2,7 +2,7 @@
 
 A differential testing library for [Apache Flink](https://flink.apache.org/).
 
-## Installing Java and Maven
+## Installing Java 11 and Maven
 
 You will need Java version 11.
 
@@ -14,9 +14,9 @@ You will need Java version 11.
 
 ## Installing the flink-training-exercises package
 
-First run `git submodule init` and `git submodule update` in `flink-training-exercises` to obtain the source code.
-Then build the code by running `mvn clean package`. Finally, install the package in the local Maven repository by
-executing the following command in the top directory.
+Inside the `flink-training-exercises` subdirectory (`cd flink-training-exercises`), run `git submodule init` and `git submodule update`. Then build the code by running `mvn clean package`.
+
+Back in the top-level directory (`cd ..`), install the package in the local Maven repository by executing the following command:
 
 ```sh
 mvn install:install-file \
