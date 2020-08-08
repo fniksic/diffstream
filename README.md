@@ -12,13 +12,28 @@ executing the following command in the top directory.
 
 ```sh
 mvn install:install-file \
-    -Dfile=flink-training-exercises/target/flink-training-exercises-2.9.1.jar \
+    -Dfile=flink-training-exercises/target/flink-training-exercises-3.1.1.jar \
     -DpomFile=flink-training-exercises/pom.xml \
-    -Dsources=flink-training-exercises/target/flink-training-exercises-2.9.1-sources.jar \
-    -Djavadoc=flink-training-exercises/target/flink-training-exercises-2.9.1-javadoc.jar
+    -Dsources=flink-training-exercises/target/flink-training-exercises-3.1.1-sources.jar
 ```
 
 That finishes the installation. To see if everything is working, run `mvn test`.
+
+## Installing DiffStream
+
+Make sure that you have installed `flink-training-exercises` as described above.
+
+Then run `mvn clean package` to build DiffStream.
+
+Then install it by running:
+
+```sh
+
+cd parent
+mvn install
+cd ..
+mvn install
+```
 
 ## Installing Redis
 
