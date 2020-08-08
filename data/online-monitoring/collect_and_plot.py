@@ -61,7 +61,7 @@ def parse_unmatched(dir_name):
 
 def parse_unmatched_line(line):
     unmatched_left = line.split(": ")[2].split(" ")[0]
-    unmatched_right = line.split(": ")[3].rstrip()
+    unmatched_right = line.split(": ")[3].split(" ")[0].rstrip()
     return (int(unmatched_left), int(unmatched_right))
 
 def plot_unmatched_in_time(dir_name, unmatched):

@@ -23,9 +23,13 @@ echo "Stopping anything that could be running"
 ./flink-bench.sh STOP_ALL 2> /dev/null
 
 ## Run the test
+STDOUT_LOG=online-monitoring-stdout.log
+STDERR_LOG=online-monitoring-stderr.log
 ## TODO: Figure out a good load and test time
 echo "Running the test with load: ${LOAD} for duration: ${TEST_TIME} seconds."
-LOAD=${LOAD} TEST_TIME=${TEST_TIME} ./flink-bench.sh FLINK_TEST
+echo "Stdout can be checked out here: ${STDOUT_LOG}"
+echo "and stderr here: ${STDERR_LOG}"
+LOAD=${LOAD} TEST_TIME=${TEST_TIME} ./flink-bench.sh FLINK_TEST 1> ${STDOUT_LOG} 2> ${STDERR_LOG}
 ## When this ends there is an exception but that is fine.
 ## TODO: Figure out if this could affect anything.
 
