@@ -18,7 +18,6 @@ public class ReducerExamplesItem implements Serializable {
         this.x = x;
         this.y = y;
         this.timestamp = new Timestamp(System.currentTimeMillis());
-
     }
 
     @Override
@@ -28,7 +27,9 @@ public class ReducerExamplesItem implements Serializable {
         if (other == null || getClass() != other.getClass())
             return false;
         ReducerExamplesItem o = (ReducerExamplesItem) other;
-        return (this.key.equals(o.key) && this.x.equals(o.x) && this.y.equals(o.y));
+        return (this.key.equals(o.key) &&
+                this.x.equals(o.x) &&
+                this.y.equals(o.y));
     }
 
     @Override
