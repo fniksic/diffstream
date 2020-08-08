@@ -71,7 +71,7 @@ def plot_unmatched_in_time(dir_name, unmatched):
     left = list(left_right[0])
     right = list(left_right[1])
     sums = [l + r for l, r in unmatched]
-    print(left[:100])
+    # print(left[:100])
     plt.plot(x, left, label='Left')
     plt.plot(x, right, label='Right')
     plt.plot(x, sums, label='Total')

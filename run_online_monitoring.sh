@@ -20,25 +20,25 @@ RESULTS_DIR="${RESULTS_PARENT_DIR}/${RESULTS_DIR_NAME}"
 cd streaming-benchmarks/
 
 echo "Stopping anything that could be running"
-./flink-bench.sh STOP_ALL 2> /dev/null
+./flink-bench.sh STOP_ALL > /dev/null 2>&1
 
 ## Run the test
 STDOUT_LOG=online-monitoring-stdout.log
 STDERR_LOG=online-monitoring-stderr.log
 ## TODO: Figure out a good load and test time
 echo "Running the test with load: ${LOAD} for duration: ${TEST_TIME} seconds."
-echo "Stdout can be checked out here: ${STDOUT_LOG}"
-echo "and stderr here: ${STDERR_LOG}"
+echo "|-- stdout can be checked out here: streaming-benchmarks/${STDOUT_LOG}"
+echo "|-- and stderr here: streaming-benchmarks/${STDERR_LOG}"
 LOAD=${LOAD} TEST_TIME=${TEST_TIME} ./flink-bench.sh FLINK_TEST 1> ${STDOUT_LOG} 2> ${STDERR_LOG}
 ## When this ends there is an exception but that is fine.
 ## TODO: Figure out if this could affect anything.
 
 ## Stop everything
 echo "Stopping everything"
-./flink-bench.sh STOP_ALL 2> /dev/null
+./flink-bench.sh STOP_ALL > /dev/null 2>&1
 
 ## Make a directory to store the results
-echo "Store the results in a directory"
+echo "Store the results in ${RESULTS_DIR}"
 mkdir -p "../${RESULTS_DIR}"
 cp memory-log.txt "../${RESULTS_DIR}/"
 cp unmatched-items.txt "../${RESULTS_DIR}/"
