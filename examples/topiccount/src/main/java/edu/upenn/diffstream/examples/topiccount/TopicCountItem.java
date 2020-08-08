@@ -1,10 +1,10 @@
 package edu.upenn.diffstream.examples.topiccount;
 
-import edu.upenn.diffstream.utils.Case;
-
 import java.io.Serializable;
+import java.util.function.Function;
 
 public interface TopicCountItem extends Serializable {
 
-    <T> T match(Case<Word, T> wordCase, Case<EndOfFile, T> endOfFileCase);
+    <T> T match(Function<Word, T> wordCase, Function<EndOfFile, T> endOfFileCase);
+
 }

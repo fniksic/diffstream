@@ -3,8 +3,8 @@ package edu.upenn.diffstream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 
 /**
- * KK: Is it possible to parametrize this by a variable-size set of
- * input and output streams instead of just one?
+ * A Flink computation that takes an input stream of events of type {@link IN} and
+ * produces an output stream of events of type {@link OUT}.
  **/
 @FunctionalInterface
 public interface FlinkProgram<IN, OUT> {

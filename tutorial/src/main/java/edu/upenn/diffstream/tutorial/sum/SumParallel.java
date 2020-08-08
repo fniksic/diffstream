@@ -14,6 +14,14 @@ import org.apache.flink.util.Collector;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
+/**
+ * A Flink computation that maintains a cumulative sum of the values ({@link Value})
+ * in the data stream, and outputs the sum whenever it encounters a barrier ({@link Barrier}).
+ *
+ * Unlike {@link SumSequential}, this version of the computation is truly parallel.
+ * The values between two barriers will be summed up using a specified number of parallel
+ * operator instances.
+ */
 public class SumParallel implements FlinkProgram<DataItem, Integer>, Serializable {
 
     private static final long serialVersionUID = 8928500548491154569L;
@@ -52,7 +60,7 @@ public class SumParallel implements FlinkProgram<DataItem, Integer>, Serializabl
         DataStream<Integer> partialSums = wrappedStream
                 .keyBy(x -> x.getId() % parallelism)
                 .timeWindow(Time.milliseconds(1L))
-                .aggregate(new ValueWithIdAggregator())
+                .aggregate(new ValueWithIdAggregator()).setParallelism(parallelism)
                 .timeWindowAll(Time.milliseconds(1L))
                 .reduce(Integer::sum);
 

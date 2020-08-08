@@ -1,8 +1,7 @@
 package edu.upenn.diffstream.examples.topiccount;
 
-import edu.upenn.diffstream.utils.Case;
-
 import java.util.Objects;
+import java.util.function.Function;
 
 public class Word implements TopicCountItem {
 
@@ -19,7 +18,7 @@ public class Word implements TopicCountItem {
     }
 
     @Override
-    public <T> T match(Case<Word, T> wordCase, Case<EndOfFile, T> endOfFileCase) {
+    public <T> T match(Function<Word, T> wordCase, Function<EndOfFile, T> endOfFileCase) {
         return wordCase.apply(this);
     }
 
