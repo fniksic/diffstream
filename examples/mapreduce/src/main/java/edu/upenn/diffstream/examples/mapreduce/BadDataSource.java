@@ -19,7 +19,7 @@ public class BadDataSource implements SourceFunction<ReducerExamplesItem> {
     private static final int TIMEOUT_MILLISECONDS = 5;
 
     private static final int RANDOM_INT_MIN = 1;
-    private static final int RANDOM_INT_BOUND = 3;
+    private static final int RANDOM_INT_BOUND = 4;
 
     @Override
     public void run(SourceContext<ReducerExamplesItem> sourceContext)
