@@ -86,10 +86,13 @@ public class MapReduceNondeterminismTest {
     // This template requires that the reducer be implemented as an
     // AggregateFunction.
     public <AccType, OutType> void mapReduceTest(
+        String testInfo,
         SourceFunction<ReducerExamplesItem> inputSource,
         AggregateFunction<ReducerExamplesItem, AccType, OutType> reducer,
         Dependence<OutType> dependence
     ) throws Exception {
+        System.out.println("Running MapReduce test: " + testInfo);
+
         for (int iteration = 0; iteration < TEST_ITERATIONS; iteration++) {
             StreamExecutionEnvironment env =
                 StreamExecutionEnvironment.getExecutionEnvironment();
@@ -137,6 +140,7 @@ public class MapReduceNondeterminismTest {
     @Test(expected = Exception.class)
     public void testSingleItemIncorrect() throws Exception {
         mapReduceTest(
+            "SingleItem (determinism on all inputs)",
             new BadDataSource(TEST_STREAM_FUEL),
             new SingleItemReducer(),
             new EmptyDependence<>()
@@ -147,6 +151,7 @@ public class MapReduceNondeterminismTest {
     @Test
     public void testSingleItemCorrect() throws Exception {
         mapReduceTest(
+            "SingleItem (determinism on well-formed input)",
             new GoodDataSource(TEST_STREAM_FUEL),
             new SingleItemReducer(),
             new EmptyDependence<>()
@@ -157,6 +162,7 @@ public class MapReduceNondeterminismTest {
     @Test(expected = Exception.class)
     public void testIndexValuePairIncorrect() throws Exception {
         mapReduceTest(
+            "IndexValuePair (determinism on all inputs)",
             new BadDataSource(TEST_STREAM_FUEL),
             new IndexValuePairReducer(),
             new EmptyDependence<>()
@@ -167,6 +173,7 @@ public class MapReduceNondeterminismTest {
     @Test
     public void testIndexValuePairCorrect() throws Exception {
         mapReduceTest(
+            "IndexValuePair (determinism on well-formed input)",
             new GoodDataSource(TEST_STREAM_FUEL),
             new IndexValuePairReducer(),
             new EmptyDependence<>()
@@ -177,6 +184,7 @@ public class MapReduceNondeterminismTest {
     @Test(expected = Exception.class)
     public void testMaxRowIncorrect() throws Exception {
         mapReduceTest(
+            "MaxRow (determinism on all inputs)",
             new BadDataSource(TEST_STREAM_FUEL),
             new MaxRowReducer(),
             new EmptyDependence<>()
@@ -187,6 +195,7 @@ public class MapReduceNondeterminismTest {
     @Test
     public void testMaxRowCorrect() throws Exception {
         mapReduceTest(
+            "MaxRow (determinism on well-formed input)",
             new GoodDataSource(TEST_STREAM_FUEL),
             new MaxRowReducer(),
             new EmptyDependence<>()
@@ -197,6 +206,7 @@ public class MapReduceNondeterminismTest {
     @Test(expected = Exception.class)
     public void testFirstNIncorrect() throws Exception {
         mapReduceTest(
+            "FirstN (determinism on all inputs)",
             new BadDataSource(100),
             new FirstNReducer(),
             new EmptyDependence<>()
@@ -207,6 +217,7 @@ public class MapReduceNondeterminismTest {
     @Test
     public void testFirstNCorrect() throws Exception {
         mapReduceTest(
+            "FirstN (determinism on well-formed input)",
             new BadDataSource(10),
             new FirstNReducer(),
             new EmptyDependence<>()
@@ -217,6 +228,7 @@ public class MapReduceNondeterminismTest {
     @Test(expected = Exception.class)
     public void testStrConcatIncorrect() throws Exception {
         mapReduceTest(
+            "StrConcat (determinism on all inputs)",
             new BadDataSource(TEST_STREAM_FUEL),
             new StrConcatReducer(),
             new EmptyDependence<>()
@@ -250,7 +262,7 @@ public class MapReduceNondeterminismTest {
                     Arrays.asList(other.s.split("@"))
                 );
                 return thisSet.equals(otherSet);
-            }else {
+            } else {
                 return false;
             }
         }
@@ -286,64 +298,84 @@ public class MapReduceNondeterminismTest {
     @Test
     public void testStrConcatCorrect() throws Exception {
         mapReduceTest(
+            "StrConcat (nondeterminism)",
             new BadDataSource(20),
             new StrConcatReducerOverridedEquality(),
             new EmptyDependence<>()
         );
     }
 
-    // 5C. StrConcat, second version: outputs each item individually as part
-    // of an *output stream*, rather than as a concatenated string.
-    // For this test and the next one only, we don't use mapReduceTest but make
-    // a version which does not window and does not aggregate output.
-    // This one is incorrect because it uses FullDependence() on the output.
-    @Test(expected = Exception.class)
-    public void testStrConcatStreamOutputIncorrect() throws Exception {
-        StreamExecutionEnvironment env =
-            StreamExecutionEnvironment.getExecutionEnvironment();
-        SourceFunction<ReducerExamplesItem> inputSource =
-            new BadDataSource(20);
-        Dependence<ReducerExamplesItem> dependence = new FullDependence<>();
+    // 5C. StrConcat, second version:
+    // Rather than concatenating the outputs as a string, since we are in
+    // the streaming setting, we can rewrite the reducer to avoid
+    // aggregation, and instead output each item individually as a separate
+    // item of the output stream.
 
-        DataStream<ReducerExamplesItem> testInput = env.addSource(inputSource);
+    // For this test and the next one only, we don't use mapReduceTest, but use
+    // the following simplified version which is a basic implementation of
+    // the above idea: it does not window and does not aggregate output at
+    // all.
+    public void mapReduceSimplifiedStrConcatTest(
+        String testInfo,
+        SourceFunction<ReducerExamplesItem> inputSource,
+        Dependence<ReducerExamplesItem> dependence
+    ) throws Exception {
+        System.out.println("Running MapReduce test: " + testInfo);
 
-        KeyedStream<ReducerExamplesItem, Integer> seqOutput =
-            identityMapper(testInput, true);
-        KeyedStream<ReducerExamplesItem, Integer> parOutput =
-            identityMapper(testInput, false);
+        for (int iteration = 0; iteration < TEST_ITERATIONS; iteration++) {
+            StreamExecutionEnvironment env =
+                StreamExecutionEnvironment.getExecutionEnvironment();
 
-        StreamEquivalenceMatcher<ReducerExamplesItem> matcher =
-            StreamEquivalenceMatcher.createMatcher(
-                seqOutput, parOutput, dependence
-            );
+            DataStream<ReducerExamplesItem> testInput =
+                env.addSource(inputSource);
 
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+            KeyedStream<ReducerExamplesItem, Integer> seqOutput =
+                identityMapper(testInput, true);
+            KeyedStream<ReducerExamplesItem, Integer> parOutput =
+                identityMapper(testInput, false);
+
+            if (DEBUG) {
+                DataStream<ReducerExamplesItem> printer1 =
+                    printMapper("SEQ OUTPUT: ", seqOutput);
+                DataStream<ReducerExamplesItem> printer2 =
+                    printMapper("PAR OUTPUT: ", parOutput);
+            }
+
+            StreamEquivalenceMatcher<ReducerExamplesItem> matcher =
+                StreamEquivalenceMatcher.createMatcher(
+                    seqOutput, parOutput, dependence
+                );
+
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
-    // 5D. StrConcat, second version. The difference with 5C is we now use
-    // EmptyDependence instead of FullDependence.
+    // Using the re-implemented streaming version, we now test for
+    // determinism, requiring fully ordered output. This should throw
+    // an exception as the output is unordered.
+    @Test(expected = Exception.class)
+    public void testStrConcatStreamOutputIncorrect() throws Exception {
+        mapReduceSimplifiedStrConcatTest(
+            "StrConcat, re-implemented streaming version" +
+            " (determinism on all inputs)",
+            new BadDataSource(20),
+            new FullDependence<>()
+        );
+    }
+
+    // 5D. Finally, using the same StrConcat re-implementation as in 5C,
+    // we test allowing the output to be unordered. This should pass
+    // without an exception, indicating we avoid flagging the
+    // nondeterminism as buggy.
     @Test
     public void testStrConcatStreamOutputCorrect() throws Exception {
-        StreamExecutionEnvironment env =
-            StreamExecutionEnvironment.getExecutionEnvironment();
-        SourceFunction<ReducerExamplesItem> inputSource = new BadDataSource(20);
-        Dependence<ReducerExamplesItem> dependence = new EmptyDependence<>();
-
-        DataStream<ReducerExamplesItem> testInput = env.addSource(inputSource);
-
-        KeyedStream<ReducerExamplesItem, Integer> seqOutput =
-            identityMapper(testInput, true);
-        KeyedStream<ReducerExamplesItem, Integer> parOutput =
-            identityMapper(testInput, false);
-
-        StreamEquivalenceMatcher<ReducerExamplesItem> matcher =
-            StreamEquivalenceMatcher.createMatcher(
-                seqOutput, parOutput, dependence
-            );
-
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        mapReduceSimplifiedStrConcatTest(
+            "StrConcat, re-implemented streaming version" +
+            " (nondeterminism)",
+            new BadDataSource(20),
+            new EmptyDependence<>()
+        );
     }
 
 }
