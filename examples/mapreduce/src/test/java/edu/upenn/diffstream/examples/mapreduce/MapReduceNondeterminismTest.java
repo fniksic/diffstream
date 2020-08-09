@@ -136,7 +136,8 @@ public class MapReduceNondeterminismTest {
 
     /* ========================= TESTS ========================= */
 
-    // 1A. SingleItem on bad input
+    // 1A. SingleItem on arbitrary input (BadDataSource)
+    // This should throw an exception due to nondeterminism.
     @Test(expected = Exception.class)
     public void testSingleItemIncorrect() throws Exception {
         mapReduceTest(
@@ -147,7 +148,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 1B. SingleItem on good input
+    // 1B. SingleItem on well-formed input (GoodDataSource)
+    // This should terminate normally (no nondeterminism).
     @Test
     public void testSingleItemCorrect() throws Exception {
         mapReduceTest(
@@ -158,7 +160,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 2A. IndexValuePair on bad input
+    // 2A. IndexValuePair on arbitrary input (BadDataSource)
+    // This should throw an exception due to nondeterminism.
     @Test(expected = Exception.class)
     public void testIndexValuePairIncorrect() throws Exception {
         mapReduceTest(
@@ -169,7 +172,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 2B. IndexValuePair on good input
+    // 2B. IndexValuePair on well-formed input (GoodDataSource)
+    // This should terminate normally (no nondeterminism).
     @Test
     public void testIndexValuePairCorrect() throws Exception {
         mapReduceTest(
@@ -180,7 +184,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 3A. MaxRow on bad input
+    // 3A. MaxRow on arbitrary input (BadDataSource)
+    // This should throw an exception due to nondeterminism.
     @Test(expected = Exception.class)
     public void testMaxRowIncorrect() throws Exception {
         mapReduceTest(
@@ -191,7 +196,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 3B. MaxRow on good input
+    // 3B. MaxRow on well-formed input (GoodDataSource)
+    // This should terminate normally (no nondeterminism).
     @Test
     public void testMaxRowCorrect() throws Exception {
         mapReduceTest(
@@ -202,7 +208,10 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 4A. FirstN on bad input
+    // 4A. FirstN on arbitrary input
+    // In this case "arbitrary input" means a larger number of input
+    // items (100)
+    // This should throw an exception due to nondeterminism.
     @Test(expected = Exception.class)
     public void testFirstNIncorrect() throws Exception {
         mapReduceTest(
@@ -213,7 +222,10 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 4B. FirstN on good input
+    // 4B. FirstN on well-formed input (GoodDataSource)
+    // In this case, "well-formed input" means a smaller number of input
+    // items (10)
+    // This should terminate normally (no nondeterminism).
     @Test
     public void testFirstNCorrect() throws Exception {
         mapReduceTest(
@@ -224,7 +236,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 5A. StrConcat with bad equality relation
+    // 5A. StrConcat, naive test
+    // This should throw an exception due to nondeterminism.
     @Test(expected = Exception.class)
     public void testStrConcatIncorrect() throws Exception {
         mapReduceTest(
@@ -235,7 +248,7 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 5B. StrConcat, first correct version: overrides equality
+    // 5B. StrConcat, first corrected version: overrides equality
 
     // We first define a custom wrapper String class, which replaces default
     // String equality.
@@ -252,9 +265,11 @@ public class MapReduceNondeterminismTest {
         public boolean equals(Object other1) {
             if(other1 instanceof StringWithSeparators) {
                 StringWithSeparators other = (StringWithSeparators) other1;
-                System.out.println(
-                    "CHECKING EQUALITY: " + this + " and " + other
-                );
+                if (DEBUG) {
+                    System.out.println(
+                        "CHECKING EQUALITY: " + this + " and " + other
+                    );
+                }
                 HashSet<String> thisSet = new HashSet<>(
                     Arrays.asList(this.s.split("@"))
                 );
@@ -295,6 +310,8 @@ public class MapReduceNondeterminismTest {
     }
 
     // Then we run the test.
+    // Because we have redefined equality to what we actually care about,
+    // this should terminate normally (no nondeterminism).
     @Test
     public void testStrConcatCorrect() throws Exception {
         mapReduceTest(
@@ -305,7 +322,8 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 5C. StrConcat, second version:
+    // 5C. StrConcat, re-implemented, naive test
+
     // Rather than concatenating the outputs as a string, since we are in
     // the streaming setting, we can rewrite the reducer to avoid
     // aggregation, and instead output each item individually as a separate
@@ -352,8 +370,8 @@ public class MapReduceNondeterminismTest {
     }
 
     // Using the re-implemented streaming version, we now test for
-    // determinism, requiring fully ordered output. This should throw
-    // an exception as the output is unordered.
+    // determinism, requiring fully ordered output.
+    // This should throw an exception due to nondeterminism.
     @Test(expected = Exception.class)
     public void testStrConcatStreamOutputIncorrect() throws Exception {
         mapReduceSimplifiedStrConcatTest(
@@ -364,10 +382,12 @@ public class MapReduceNondeterminismTest {
         );
     }
 
-    // 5D. Finally, using the same StrConcat re-implementation as in 5C,
-    // we test allowing the output to be unordered. This should pass
-    // without an exception, indicating we avoid flagging the
-    // nondeterminism as buggy.
+    // 5D. StrConcat, re-implemented corrected version
+
+    // Finally, using the same StrConcat re-implementation as in 5C,
+    // we test allowing the output to be unordered.
+    // Because we use the correct dependence relation, this should
+    // terminate normally (no nondeterminism).
     @Test
     public void testStrConcatStreamOutputCorrect() throws Exception {
         mapReduceSimplifiedStrConcatTest(

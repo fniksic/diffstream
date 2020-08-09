@@ -47,7 +47,9 @@ public class BadDataSource implements SourceFunction<ReducerExamplesItem> {
     }
 
     public Integer generateInteger() {
-        return RANDOM_INT_MIN + random.nextInt(RANDOM_INT_BOUND - RANDOM_INT_MIN);
+        return RANDOM_INT_MIN + random.nextInt(
+            RANDOM_INT_BOUND - RANDOM_INT_MIN
+        );
     }
 
     @Override
