@@ -36,6 +36,53 @@ More detail on each of these case studies can be found under "Running the Experi
 
 ## Tutorial
 
+To get the reader familiar with DiffStream and Flink, we have decided to include a short tutorial. The tutorial consists of reading and optionally altering a few simple DiffStream tests, and it should give the reader an idea of how to test Flink programs. DiffStream can be used to check equivalence of streams (up to reordering), to check the output of a Flink program against a manually provided output, and to run a differential test between two programs.
+
+The relevant source code for the tutorial is located in the directory `diffstream/tutorial`. In the remainder of this section, all the paths will be given relative to this directory. As a sanity check, running `mvn test` in the directory should complete successfully, with a total of 6 successfully executed tests.
+
+### IncDec
+
+We start with the IncDec example, whose source files are located in `src/main/java/edu/upenn/diffstream/tutorial/incdec`. There are 5 files there, defining an interface called `IncDecItem` with three implementing classes called `Inc`, `Dec`, and `Barrier`, and a dependence relation implemented as a class called `IncDecDependence`. `IncDecItem` is the base type of events in a stream: `Inc` and `Dec` represent increment and decrement events and they hold a non-negative integer value, and `Barrier` represents events that delineate sets of increments and decrements in a stream. The dependence relation among these event types is defined so that two increments are independent, two decrements are independent, and every other combination of two events is dependent. The comments in the source files should provide more intuition behind these event types and the dependence relation.
+
+We are now ready to take a look at the tests. The file `src/test/java/edu/upenn/diffstream/tutorial/incdec/IncDecTest.java` contains two JUnit tests. Each test starts by defining a Flink stream execution environment, in which we manually define two streams. We connect the streams in a stream equivalence matcher, together with an instance of the `IncDecDependence` dependence relation. By doing this, we have defined a Flink program that will feed the two streams into the matcher, which will then check whether the streams are equivalent up to reordering with respect to the dependence relation. We execute the program by running `env.execute()`. The program is executed on an embedded mini cluster provided by Flink for testing, which is defined and configured at the top of the IncDecTest class.
+
+In the one of the two tests (`IncDecTest.testIncDecNonEquivalent`), the two streams are not equivalent, that is, the first stream cannot be reordered to get the second. The matcher will detect this and throw an exception, but the test is annotated to expect an exception, so it will pass. The other test (`IncDecTest.testIncDecEquivalent`) has two equivalent streams.
+
+In order to run the tests from the console, execute
+
+```
+mvn test -Dtest=IncDecTest
+```
+
+It is also possible to run a specific test:
+
+```
+mvn test -Dtest=IncDecTest#testIncDecNonEquivalent
+mvn test -Dtest=IncDecTest#testIncDecEquivalent
+```
+
+The tests can also be run in IntelliJ IDEA, which is provided in the virtual machine.
+
+It may be interesting to see what happens when we change the dependence relation. Try to edit the code in `IncDecDependence.java` and replace the body of the `test` method to simply always return `false`. Before re-running the tests, try to predict which one (if any) will fail, then re-run the tests. Now change the `IncDecDependence.test` method to always return `true`, and repeat the same experiment.
+
+### Sum
+
+In the next part of the tutorial, we will look at the Sum example, whose source code is located in `src/main/java/edu/upenn/diffstream/tutorial/sum`. Here we have two event types, `Value` and `Barrier`, both of which implement a common interface called `DataItem`. `Value` carries an integer value. In this example, there are two versions of a Flink program that computes a cumulative sum of the values in a stream, and outputs the sum each time it encounters a `Barrier`. The simpler version is sequential (`SumSequential.java`), and the more complex version is parallel (`SumParallel.java`). Try to get a basic understanding of how the sequential version works by following the comments in the source code. Understanding the parallel version is challenging and it requires more advanced understanding of Flink. For this tutorial it suffices to notice that it is not immediately clear the two versions of the program are equivalent.
+
+We try to establish the equivalence of the programs by testing whether they produce the same output on the same input. There are four tests located in `src/test/java/edu/upenn/diffstream/tutorial/sum/SumTest.java`:
+
+```
+mvn test -Dtest=SumTest#testSumParallel
+mvn test -Dtest=SumTest#testSumSequential
+mvn test -Dtest=SumTest#testDifferential
+mvn test -Dtest=SumTest#testDifferentialSeq
+```
+
+The general outline of the tests is the same as in the previous example. The difference is that instead of testing whether fixed streams are equivalent, we are testing whether the outputs of programs are equivalent. The first two tests compare the output of the sequential and the parallel program with a manually provided stream, resembling a traditional unit test. The last two tests are differential tests. `SumTest.testDifferential` compares the parallel program against the sequential program, with the latter essentially serving as a form of specification for what the former should output. `SumTest.testDifferentialSeq` compares a parallelized version of the sequential program against the sequential program itself. Here, the parallelization is achieved by simply instantiating several instances of the program, which is shown not to be correct by the test.
+
+We suggest tweaking the constant called `PARALLELISM` defined on top of `SumTest`. Try setting it to 1. Will all the tests succeed? Another interesting thing to try is to change the input stream in `SumTest.testDifferentialSeq`. Even if the stream contains only one `Value` and one `Barrier`, and provided that `PARALLELISM` is more than 1, the test should reveal the two programs are not equivalent. We will encounter the same phenomenon again in the Topic Count case study, which is essentially a more realistic version of the Sum example.
+
+
 ## Step By Step Instructions: Running the Experiments
 
 These instructions are divided based on the section of the paper that they correspond to.
