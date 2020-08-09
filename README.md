@@ -5,7 +5,7 @@ A differential testing library for [Apache Flink](https://flink.apache.org/) pro
 The tool and the underlying methodology are described in the OOPSLA paper, which can be found in `PAPER.pdf`.
 This README contains instructions on how to quickly get started, how to use the tool, and how to run the experiments from the paper.
 
-## Quick Start
+## Getting Started
 
 **Virtual Machine:** The virtual machine should come with all dependencies installed.
 For later users, the installation instructions can be found in `INSTALL.md`.
