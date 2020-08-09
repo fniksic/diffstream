@@ -12,8 +12,8 @@ public class GoodDataSource implements SourceFunction<ReducerExamplesItem> {
 
     private static final boolean DEBUG = false;
 
-    public GoodDataSource() {this.fuel = 10; }
-    public GoodDataSource(Integer fuel) {this.fuel = fuel; }
+    public GoodDataSource() { this.fuel = 10; }
+    public GoodDataSource(Integer fuel) { this.fuel = fuel; }
 
     private static final int TIMEOUT_EVERY = 10;
     private static final int TIMEOUT_MILLISECONDS = 5;

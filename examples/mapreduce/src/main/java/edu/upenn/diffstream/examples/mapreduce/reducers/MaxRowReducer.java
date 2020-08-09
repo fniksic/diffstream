@@ -11,8 +11,9 @@ import org.apache.flink.api.java.tuple.Tuple2;
  *   - OR there is at most one item with the max value of x
  */
 public class MaxRowReducer implements
-        AggregateFunction<ReducerExamplesItem, Tuple2<Integer, Integer>, Tuple2<Integer, Integer>>
-{
+        AggregateFunction<ReducerExamplesItem,
+                          Tuple2<Integer, Integer>,
+                          Tuple2<Integer, Integer>> {
     public Tuple2<Integer, Integer> createAccumulator() {
         return new Tuple2<>(0, null);
     }

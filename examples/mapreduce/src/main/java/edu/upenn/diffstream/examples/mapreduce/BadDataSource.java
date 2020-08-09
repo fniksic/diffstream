@@ -12,8 +12,8 @@ public class BadDataSource implements SourceFunction<ReducerExamplesItem> {
 
     private static final boolean DEBUG = false;
 
-    public BadDataSource() {this.fuel = 10; }
-    public BadDataSource(Integer fuel) {this.fuel = fuel; }
+    public BadDataSource() { this.fuel = 10; }
+    public BadDataSource(Integer fuel) { this.fuel = fuel; }
 
     private static final int TIMEOUT_EVERY = 10;
     private static final int TIMEOUT_MILLISECONDS = 5;
@@ -40,9 +40,9 @@ public class BadDataSource implements SourceFunction<ReducerExamplesItem> {
 
     public ReducerExamplesItem generateItem() {
         return new ReducerExamplesItem(
-                generateInteger(),
-                generateInteger(),
-                generateInteger()
+            generateInteger(),
+            generateInteger(),
+            generateInteger()
         );
     }
 

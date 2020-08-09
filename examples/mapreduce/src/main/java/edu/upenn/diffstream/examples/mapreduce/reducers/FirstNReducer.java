@@ -34,11 +34,14 @@ public class FirstNReducer implements
         }
         return new Tuple2<>(items, count);
     }
-    public Set<ReducerExamplesItem> getResult(Tuple2<Set<ReducerExamplesItem>, Integer> state) {
+    public Set<ReducerExamplesItem> getResult(Tuple2<Set<ReducerExamplesItem>,
+                                              Integer> state) {
         return state.f0;
     }
-    public Tuple2<Set<ReducerExamplesItem>, Integer> merge(Tuple2<Set<ReducerExamplesItem>, Integer> ignore1,
-                                                           Tuple2<Set<ReducerExamplesItem>, Integer> ignore2) {
+    public Tuple2<Set<ReducerExamplesItem>, Integer> merge(
+        Tuple2<Set<ReducerExamplesItem>, Integer> ignore1,
+        Tuple2<Set<ReducerExamplesItem>, Integer> ignore2
+    ) {
         throw new RuntimeException("'merge' should not be called");
     }
 }
