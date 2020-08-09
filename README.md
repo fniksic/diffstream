@@ -26,7 +26,7 @@ To quickly validate the paper experiments, we provide the following 4 shell scri
 - **(Section 5.1 case study, ~10 seconds)** Run `./run_taxi.sh`. Verify that 5 tests are run and that the build succeeds.
 
 - **(Section 5.2 case study, ~10 minutes)**
-Run `./run_topiccount.sh` and check that it doesn't fail. It should return something similar to the following.
+Run `./run_topiccount.sh` and check that it doesn't fail. It should print a sequence of jobs. The first few are DiffStream tests of a program, and a total time to complete each test, and the rest are running times of the parallel program to verify that it speeds up with increasing levels of parallelism.
 
 - **(Section 5.3 case study, ~1 minute)** Run `./run_mapreduce.sh`. Verify that the 12 test results pass and the script says BUILD SUCCEEDED. (Each checkmark in the Section 5.3 table corresponds to one test result, except the final row, StrConcat, where the two checkmarks correspond to 4 tests.) Please note that because these are random tests, it is possible (though unlikely) that a test may not detect the bug, and the script will fail. If so, run the script again.
 
@@ -44,7 +44,7 @@ These instructions are divided based on the section of the paper that they corre
 
 The source code of the Taxi Distance experiment is located in
 `examples/taxi`. To run all the TaxiDistance tests, you can just use
-the script `./run_taxi.sh`, but we suggest using IntelliJ to open the
+the script `./run_taxi.sh`, but alternatively you can use IntelliJ to open the
 tests described below one by one, and running them by clicking the
 green arrow next to their definitions in IntelliJ. The wrong parallel
 implementation is caught by two tests (`testPositionsByKey`,
@@ -74,7 +74,85 @@ The source code of the Topic Count case study (Section 5.2 in the paper) is loca
 mvn package
 ```
 
-Recall from the paper that the goal in this case study is to implement a streaming program for finding the most frequent word topic in a document. Documents are given as a stream of words delineated with end-of-file markers, and the mapping from words to topics is stored in an external Redis database. As explained in the paper, there is a fairly straightforward sequential solution and a tricky-to-implement parallel solution to this problem. The two solutions are located in files `src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountSequential.java` and `src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountParallel.java`. The first step of the case study is to look at the code and convince yourself that the parallel version looks dauntingly tricky and quite different then the sequential version.
+To only verify the results, the top-level script `run_topiccount.sh` should produce output that looks something like the following:
+
+```
+Starting the sequential Topic Count
+...
+Total time: 53035 ms
+Starting the parallel Topic Count
+...
+Total time: 26457 ms
+Starting the sequential differential test
+
+Job has been submitted with JobID 95fc222c67ce78f2672a1c42c081ff12
+Streams are NOT equivalent!
+Starting the parallel differential test
+
+Job has been submitted with JobID 693c09bc5c605f000bf235daec6702ba
+Program execution finished
+Job with JobID 693c09bc5c605f000bf235daec6702ba has finished.
+Job Runtime: 75745 ms
+
+Streams are equivalent!
+Total time: 75745 ms
+Starting the parallel Topic Count with parallelism 1
+...
+Total time: 60813 ms
+---
+
+Starting the parallel Topic Count with parallelism 2
+...
+Total time: 43663 ms
+---
+
+Starting the parallel Topic Count with parallelism 3
+...
+Total time: 33977 ms
+---
+
+Starting the parallel Topic Count with parallelism 4
+...
+Total time: 29335 ms
+---
+
+Starting the parallel Topic Count with parallelism 5
+...
+Total time: 29460 ms
+---
+
+Starting the parallel Topic Count with parallelism 6
+...
+Total time: 25763 ms
+---
+
+Starting the parallel Topic Count with parallelism 7
+...
+Total time: 24890 ms
+---
+
+Starting the parallel Topic Count with parallelism 8
+...
+Total time: 24973 ms
+---
+
+Summary of the results:
+
+parallelism	time (ms)	speedup
+1		60813		1.00
+2		43663		1.39
+3		33977		1.78
+4		29335		2.07
+5		29460		2.06
+6		25763		2.36
+7		24890		2.44
+8		24973		2.43
+...
+```
+
+where `...` mean possibly several lines.
+
+We now go through the experiments one by one in more detail. From the paper, the goal in this case study is to implement a streaming program for finding the most frequent word topic in a document. Documents are given as a stream of words delineated with end-of-file markers, and the mapping from words to topics is stored in an external Redis database. As explained in the paper, there is a fairly straightforward sequential solution and a tricky-to-implement parallel solution to this problem. The two solutions are located in files `src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountSequential.java` and `src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountParallel.java`. The first step of the case study is to look at the code and convince yourself that the parallel version looks dauntingly tricky and quite different then the sequential version.
 
 We have prepared scripts to help run the programs. The scripts are located in `diffstream/examples/topiccount`.
 `prepare-topiccount.sh` starts Flink and Redis and populates the word-to-topic mapping if needed.
