@@ -284,7 +284,7 @@ This artifact supports the claims in the paper made in Section 5.
 
 The case studies in sections 5.1 and 5.3 are fully supported by the artifact, as all of the tests can be re-run and verified.
 
-The case studies in 5.2 and 5.4 are partially supported. All of the tests can be re-run, but the performance numbers differ due to being run in a VM. However, the results appear to show similar trends to what is in the paper.
+The case studies in 5.2 and 5.4 are partially supported. All of the tests can be re-run, but the performance numbers differ due to being run in a VM. In 5.2, the parallelism shows scalability of 2.5, not as parallel as in the paper. In 5.4, the trends for memory usage appear similar to what is in the paper.
 
 ### Availability
 
