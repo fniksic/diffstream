@@ -17,6 +17,10 @@ RESULTS_PARENT_DIR="data/online-monitoring/"
 RESULTS_DIR_NAME="server_load_${LOAD}_time_${TEST_TIME}_leftpar_1_right_par_2"
 RESULTS_DIR="${RESULTS_PARENT_DIR}/${RESULTS_DIR_NAME}"
 
+echo "Starting RMI registry"
+rmiregistry -J-Djava.rmi.server.codebase=file:${HOME}/diffstream/target/classes/ &
+sleep 1
+
 cd streaming-benchmarks/
 
 ## A word of warning
@@ -55,3 +59,9 @@ cd ../../
 echo "Plots and results are available in: ${RESULTS_DIR}"
 echo "File: ${RESULTS_DIR}/unmatched_histogram.pdf contains a histogram of the unmatched items."
 echo "File: ${RESULTS_DIR}/used_memory_in_time.pdf contains the used memory in time."
+
+PID="$(pidof rmiregistry)"
+if [[ "${PID}" -ne "" ]]; then
+  echo "Stopping RMI registry"
+  kill "${PID}"
+fi
