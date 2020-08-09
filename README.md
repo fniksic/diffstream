@@ -19,7 +19,7 @@ To check that the tool is working properly, you can run `mvn test` (in the top-l
 
 To quickly validate the paper experiments, we provide the following shell scripts:
 
-- (Section 5.1 case study)
+- (Section 5.1 case study) Run `./run_taxi.sh` and check that it succeeds.
 
 - (Section 5.2 case study)
 
