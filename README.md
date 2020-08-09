@@ -3,7 +3,7 @@
 A differential testing library for [Apache Flink](https://flink.apache.org/) programs.
 
 The tool and the underlying methodology are described in the OOPSLA paper, which can be found in `PAPER.pdf`.
-This README contains: (1) instructions to quickly get started, (2) a detailed tutorial on how to use the tool, and (3) how to re-run the experiments from the paper and interpret the results.
+This README contains: (1) instructions to quickly get started, (2) a detailed tutorial on how to use the tool, (3) how to re-run the experiments from the paper and interpret the results, and (4) additional documentation for reference.
 
 ## Getting Started Guide
 
@@ -272,7 +272,11 @@ The results contain three plots (the first two are included in the paper):
 
 The two plots that have time on the x-axis (used_memory_in_time, unmatched_in_time) take samples of used memory and unmatched items every seconds and report that. The unmatched samples are then collected in a histogram in `unmatched_histogram.pdf`.
 
-## Additional Info
+## Additional Information
+
+### Summary of claims in the paper supported by the artifact
+
+
 
 ### Availability
 
