@@ -15,6 +15,8 @@ Username: diffstream
 Password: diffstream
 ```
 
+Note: We suggest running the VM with at least 6GB of RAM and 2 processor cores so that everything runs smoothly. With less than 2 cores, there won't be visible scalability in the Topic Count experiment.
+
 DiffStream is a testing tool. The tool is used by writing two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
 
 To check that the tool is working properly, you can run `mvn test` (in the top-level directory, where this README is). This runs unit tests.
