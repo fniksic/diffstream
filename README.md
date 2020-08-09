@@ -19,6 +19,7 @@ Note: We suggest running the VM with at least 6GB of RAM and 2 processor cores s
 
 **Addendum: running the VM**
 [VirtualBox](https://www.virtualbox.org/) can be used to open the VM.
+We are not sure why, but sometimes the machine has trouble loading and gets stuck at a black screen. If you have this problem, try powering it off and on again and also pressing the Enter key when it opens (and select Ubuntu).
 Once the machine loads, you can then find DiffStream in Files (~/diffstream).
 Open `README.md`, which should be identical to this file, *except* for missing this paragraph.
 Please note that many tests in this file will print out "WARNING:" statements unrelated to DiffStream, but related to certain dependencies; these can safely be ignored.
