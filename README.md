@@ -344,8 +344,8 @@ DiffStream is open source. It can be found on GitHub at `https://github.com/fnik
 The source code is in `src/main`, with tests in `src/test`.
 The core algorithm is implemented in `src/main/java/edu/upenn/diffstream/StreamEquivalenceMatcher`.
 
-### Documentation
+### Additional Documentation
 
 One challenge in using DiffStream is learning how to write programs using Apache Flink. The [Flink documentation](https://ci.apache.org/projects/flink/flink-docs-stable/) is very helpful, as is Ververica's [Flink Training Exercises](https://github.com/ververica/flink-training-exercises) repository.
 
-Beyond this, while we have not provided separate documentation for the matcher and source code, we point the reader to the "Tutorial" which should be a complete description of how it is used. The examples in this repository can also all be modified, and run with `mvn test` in the appropriate directory.
+While we have not provided separate documentation for the matcher and source code, this file (including the Tutorial) should be complete description of how it is used. The examples in this repository can also all be modified, and run with `mvn test` in the appropriate directory.
