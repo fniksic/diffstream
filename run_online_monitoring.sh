@@ -12,6 +12,24 @@
 LOAD=5000
 TEST_TIME=600
 
+helpFunction()
+{
+   echo ""
+   echo "Usage: $0 [-l LOAD] [-t DURATION]"
+   echo -e "\t-l Load: Input events per second. Default: 5000"
+   echo -e "\t-t Duration: Experiment duration in seconds. Default: 600"
+   exit 1 # Exit script after printing help
+}
+
+while getopts "l:t:" opt
+do
+   case "$opt" in
+      l ) LOAD="$OPTARG" ;;
+      t ) TEST_TIME="$OPTARG" ;;
+      ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
+   esac
+done
+
 ## The directory that will contain the results
 RESULTS_PARENT_DIR="data/online-monitoring/"
 RESULTS_DIR_NAME="server_load_${LOAD}_time_${TEST_TIME}_leftpar_1_right_par_2"
