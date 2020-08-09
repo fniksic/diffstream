@@ -1,10 +1,30 @@
 # DiffStream
 
-A differential testing library for [Apache Flink](https://flink.apache.org/).
+A differential testing library for [Apache Flink](https://flink.apache.org/) programs.
 
-For the OOPSLA paper, see `paper.pdf`. For installation instructions, see `INSTALL.md`.
+The tool and the underlying methodology are described in the OOPSLA paper, which can be found in `paper.pdf`.
+This README contains instructions on how to quickly get started, how to use the tool, and how to run the experiments from the paper.
 
-## Getting Started
+## Quick Start
+
+**Virtual Machine:** The virtual machine should come with all dependencies installed.
+For later users, the installation instructions can be found in `INSTALL.md`.
+
+DiffStream is a testing tool. The tool is used by writing a two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
+
+To check that the tool is working properly, you can run `mvn test` (in the top-level directory, where this README is). This runs unit tests.
+
+To quickly validate the paper experiments, we provide the following shell scripts:
+
+- (Section 5.1 case study)
+
+- (Section 5.2 case study)
+
+- (Section 5.3 case study) Run `./run_map_reduce.sh`. Verify that the 12 test results pass and the script says BUILD SUCCEEDED. (Each checkmark in the Section 5.3 table corresponds to one test result, except the final row, StrConcat, where the two checkmarks correspond to 4 tests.) Please note that because these are random tests, it is possible (though unlikely) that a test may not detect the bug, and the script will fail. If so, run the script again.
+
+- (Section 5.4 case study) Run `./run_online_monitoring.sh -l 1000 -t 120` and after it finishes, check that 3 plots have been produced in `data/online-monitoring//server_load_1000_time_120_leftpar_1_right_par_2`.
+
+More detail on each of these case studies can be found under "Running the Experiments".
 
 ## Tutorial
 
@@ -16,4 +36,41 @@ For the OOPSLA paper, see `paper.pdf`. For installation instructions, see `INSTA
 
 ### 5.3 MapReduce
 
+The source code of the MapReduce case study (Section 5.3 in the paper) is located in the directory `examples/mapreduce`.
+
+To simply run all the experiments, you can use the script `./run_mapreduce.sh`. This should print a bunch of tests, with the expected and actual results. Each result corresponds to a checkmark in the table in Section 5.3 (this is reflected in the test name, though due to details of Java JUnit, the tests run out of order from what is in the table). StrConcat has 4 tests instead of just 2 for the 2 checkmarks, because we explored two different implementations to correct the nondeterminism, as described in the paper text. If any results differ from what is expected, the build will fail. Otherwise it should show that 12 tests are run with BUILD SUCCEEDED.
+
+Please note that due to random input generation as well as nondeterminism of parallel Flink programs, it is possible (though very unlikely) that one of the tests will get an input that does not expose the bug in the given program. If this happens, just re-run the tests.
+
+In more detail:
+
+- The experiment consists of 12 tests, implemented in `examples/mapreduce/src/test/java/edu/upenn/diffstream/examples/mapreduce/MapReduceNondeterminismTest.java`.
+
+- The flink programs under test here are MapReduce reducers, adapted to the streaming setting. The implementations of the five reducers under test can be found in `examples/mapreduce/src/main/java/edu/upenn/diffstream/examples/mapreduce/reducers`.
+Each test (`@Test` in the source file mentioned in the first bullet) looks at one particular reducer under some particular input conditions and given a test specification (“dependence relation”). A sequential and parallel instance of the reducer are set up and run in Flink, and the outputs they produce are compared (differential testing). The test then reports:
+
+  - If the two programs produced equivalent results, up to the specification, the test shows that the streams were found to be equivalent.
+
+  - If the two programs produced inequivalent results, up to the specification, the test shows that the streams differed.
+
+  In this case, because we are looking at MapReduce programs, “differ” means that the reducer in question is nondeterministic.  And “equivalent” means that the reducer is probably deterministic on the given input in question. Whether it is deterministic or not does depend on the input conditions, which is what this case study tests. Most reducers are nondeterministic for all inputs (column 1 in the table), but deterministic under specific kinds of input (column 2 in the table). StrConcat is a special case: here the program is nondeterministic, but this is allowed by the application requirements; so some of the tests are showing how to avoid flagging the nondeterminism as a bug by setting up a DiffStream test in a particular way, or by re-implementing the reducer.
+
+- Three auxiliary files are in `examples/mapreduce/src/main/java/edu/upenn/diffstream/examples/mapreduce/reducers`: `BadDataSource.java` and `GoodDataSource.java` are to generate random input, and `ReducerExamplesItem.java` describes the type of events in the input stream for this particular example.
+
 ### 5.4 Online Monitoring
+
+The online monitoring experiment has two configuration parameters (LOAD and TEST_TIME). LOAD represents the input events per second that are input to the two implementations, and TEST_TIME represents the duration of the experiment. They can be configured using `./run_online_monitoring.sh -l <LOAD> -t <TEST_TIME>`. The defaults are `LOAD=5000` and `TEST_TIME=600`. The configuration for the paper is `LOAD=30000` and `TEST_TIME=7200`, but it was run on a server with many powerful cores, so on a laptop `LOAD` should be much lower for the system to be able to handle it. Since the measurements are stable, there is no need to run the experiment for 2 hours (7200 seconds), but if you do want to, feel free to do that.
+
+Run the online monitoring experiment by running `./run_online_monitoring.sh` in the top-level directory. The script prints out output about where to look for the stdout while running the experiment and the results and plots. (Don’t be alarmed if you see an exception at the end of the experiment in the stderr log. That happens because shutting down is abrupt, but doesn’t not affect the measurements or the experiment) For reference, the results and plots are saved in the `data/online-monitoring/server_load_X_time_Y/` directory, where X is the LOAD parameter and Y the TEST_TIME parameter.
+
+The experiment compares the same Flink implementation of the Yahoo Streaming Benchmark (one is sequential and the other parallel). If you want to change the parallelism of the sequential implementation to be parallel, you can do that in line 132 of file `streaming-benchmarks/flink-benchmarks/src/main/java/flink/benchmark/AdvertisingTopologyNative.java` by changing the `computation` second argument from `true` to `false` and then run `./install_online_monitoring.sh`, which reinstalls the experiment.
+
+The results contain three plots (the first two are included in the paper):
+
+- `unmatched_histogram.pdf` which shows a histogram of the unmatched items
+
+- `used_memory_in_time.pdf` which shows the used memory by the matcher as a function of time
+
+- `unmatched_in_time.pdf` which shows the unmatched items as a function of time
+
+The two plots that have time on the x-axis (used_memory_in_time, unmatched_in_time) take samples of used memory and unmatched items every seconds and report that. The unmatched samples are then collected in a histogram in `unmatched_histogram.pdf`.
