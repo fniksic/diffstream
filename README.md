@@ -8,7 +8,10 @@ This README contains instructions on how to quickly get started, how to use the 
 ## Getting Started
 
 **Virtual Machine:** The virtual machine should come with all dependencies installed.
-For later users, the installation instructions can be found in `INSTALL.md`.
+(For later users, the installation instructions can be found in `INSTALL.md`.)
+
+    Username: **diffstream**
+    Password: **diffstream**
 
 DiffStream is a testing tool. The tool is used by writing two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
 
@@ -32,7 +35,82 @@ More detail on each of these case studies can be found under "Running the Experi
 
 ### 5.1 Taxi Distance
 
+
+
 ### 5.2 Topic Count
+
+The source code of the Topic Count case study (Section 5.2 in the paper) is located in the directory `diffstream/examples/topiccount`. Make sure the code is compiled by running
+
+```
+mvn package
+```
+
+Recall from the paper that the goal in this case study is to implement a streaming program for finding the most frequent word topic in a document. Documents are given as a stream of words delineated with end-of-file markers, and the mapping from words to topics is stored in an external Redis database. As explained in the paper, there is a fairly straightforward sequential solution and a tricky-to-implement parallel solution to this problem. The two solutions are located in files `src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountSequential.java` and `src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountParallel.java`. The first step of the case study is to look at the code and convince yourself that the parallel version looks dauntingly tricky and quite different then the sequential version.
+
+We have prepared scripts to help run the programs. The scripts are located in `diffstream/examples/topiccount`.
+`prepare-topiccount.sh` starts Flink and Redis and populates the word-to-topic mapping if needed.
+`run-topiccount.sh` runs the two versions of the program and the related differential tests.
+`teardown-topiccount.sh` stops Flink and Redis.
+
+Try to run both the sequential and the parallel versions:
+
+```
+./prepare-topiccount.sh
+./run-topiccount.sh sequential
+./run-topiccount.sh parallel
+```
+
+By default, the programs are run on a stream of 10 documents, each document containing 100,000 random words. The default parallelism for the parallel program is 4. These values can be changed by passing additional arguments to `run-topiccount.sh`, for example,
+
+```
+./run-topiccount.sh parallel --totalDocuments 5 --wordsPerDocument 20000 --parallelism 3
+```
+
+will run the parallel program on 5 documents, each containing 20,000 words, and with parallelism 3. The output of the programs—the list of most frequent topics for each document—will appear in a text file called `topics.txt`.
+
+The next step in the study is to make sure that the sequential program cannot be parallelized simply by increasing the parallelism to more than 1. To do this, we have prepared a differential test (`src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountSequentialDiffTesting.java`). To run the test, execute
+
+```
+./run-topiccount.sh seq-diff-test --totalDocuments 1 --wordsPerDocument 1
+```
+
+Note that we don’t need long documents to show the non-equivalence: a single document with a single word will suffice, as parallelizing the sequential program is outright wrong. The test should exit by saying “Streams are NOT equivalent!”
+
+However, the correct parallel program should be equivalent to the (non-parallelized) sequential program. To ensure this is the case, we have prepared another differential test (`src/main/java/edu/upenn/diffstream/examples/topiccount/TopicCountParallelDiffTesting.java`). To run the test, execute
+
+```
+./run-topiccount.sh par-diff-test
+```
+
+The test should exit by saying “Streams are equivalent!”
+
+The last step of the study is to make sure that there is a performance benefit in parallelizing the computation. To test this, execute
+
+```
+./run-topiccount.sh par-scaleup
+```
+
+The script will execute the parallel Topic Count with parallelism increasing from 1 to 8 and produce a summary approximately like the following.
+
+```
+parallelism    time (ms)    speedup
+1   	 73637   	 1.00
+2   	 51179   	 1.43
+3   	 31807   	 2.31
+4   	 30653   	 2.40
+5   	 31666   	 2.32
+6   	 31025   	 2.37
+7   	 32793   	 2.24
+8   	 28417   	 2.59
+```
+
+The results reported in Table 1 in the paper show a speedup by a factor of 5 on 5 documents containing 500,000 words, but the original experiment was done on a server with more processor cores than what is available in the virtual machine.
+
+At the end of the study, you can shut down Flink and Redis by executing
+
+```
+./teardown-topiccount.sh
+```
 
 ### 5.3 MapReduce
 
@@ -93,17 +171,16 @@ The results contain three plots (the first two are included in the paper):
 
 The two plots that have time on the x-axis (used_memory_in_time, unmatched_in_time) take samples of used memory and unmatched items every seconds and report that. The unmatched samples are then collected in a histogram in `unmatched_histogram.pdf`.
 
-## Open Access
-
-DiffStream is open source. It can be found on GitHub at `https://github.com/fniksic/diffstream`
-
 ## Additional Info
 
-### Source code and directory structure
+### Availability
+
+DiffStream is open source. It can be found on GitHub at `https://github.com/fniksic/diffstream`.
+
+### Source code
 
 The source code is in `src/main`, with tests in `src/test`.
 The core algorithm is implemented in `src/main/java/edu/upenn/diffstream/StreamEquivalenceMatcher`.
-The rest of the repository contains the experiments that we have described above
 
 ### Documentation
 
