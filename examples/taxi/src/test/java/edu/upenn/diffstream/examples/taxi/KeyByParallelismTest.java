@@ -24,17 +24,6 @@ import java.lang.reflect.Parameter;
 import static org.junit.Assert.assertFalse;
 
 
-// Open ended questions and TODOs
-
-// TODO: Is it possible to modify parallelism of the operators programmaticaly?
-//       Find the operators in the pipeline and set their parallelism to 1 or 2
-
-// TODO: How can I make the sequential computation really be sequential?
-
-// TODO: In order to have a proper story for continuous safe upgrade, we need to think about the debugging output
-//       that the matcher outputs whenever equivalence is not true. After we think about this, we should implement
-//       and write about it somewhere in the paper too, as it is part of the story.
-
 public class KeyByParallelismTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(KeyByParallelismTest.class);
@@ -58,8 +47,6 @@ public class KeyByParallelismTest {
 
         // Then we keyBy TaxiID
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> positionsByTaxi = positions.keyBy(0);
-
-        // TODO: Would it be possible to also setParallelism(1) here?
 
         // Then we Probe
         return positionsByTaxi;
@@ -93,7 +80,6 @@ public class KeyByParallelismTest {
         return positionsByTaxi;
     }
 
-    // TODO: Make this more streamlined. Discuss how to do this
     public DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> generateInput(StreamExecutionEnvironment env)
             throws NoSuchMethodException {
 
@@ -146,26 +132,12 @@ public class KeyByParallelismTest {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        // TODO: Set the parallelism of the source to 1 and the parallelism of the operators to 2 or more.
-        // TODO: In order to do this, we have to return a source instead of a datastream
         DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
 
         input.print();
 
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
-
-        // TODO: Make an input generator that generates keys from a specific range for one of the fields
-
-        // Ideal interface for user: A way to specify for which field (or tuple element) of the items of the data stream
-        // should the program only generate events inrange. I don't want all the internal components to generate events
-        // in a specific range.
-        //
-        // Note: At the moment I am doing it with InRange annotation on the test itself. That is clearly not the best
-        //       way to do that.
-        //
-        // Question: How can one specify what is the exact field for which to generate items in range, rather than
-        //           arbitrary longs.
 
         StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher =
                 StreamEquivalenceMatcher.createMatcher(seqOutput, parallelOutput, (fst, snd) -> fst.f0.equals(snd.f0));
@@ -207,14 +179,6 @@ public class KeyByParallelismTest {
         DataStream<Tuple3<Long, Tuple2<Long, Long>, Integer>> input = generateInput(env);
 
         input.print();
-
-        // Note: In my opinion, we should contrast differential testing with unit and integration testing.
-        //       So here we should have both the case where the user predicts the possible output,
-        //       making a matcher that checks the correct output against that, and (maybe) also a case
-        //       where the user writes a sequential and a parallel computation and compares them.
-        //
-        // Note: In the case of manual integration/unit testing, one cannot even use a random generator,
-        //       because they would have to make the output by hand.
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
 
