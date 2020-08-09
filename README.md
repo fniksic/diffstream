@@ -3,35 +3,37 @@
 A differential testing library for [Apache Flink](https://flink.apache.org/) programs.
 
 The tool and the underlying methodology are described in the OOPSLA paper, which can be found in `PAPER.pdf`.
-This README contains instructions on how to quickly get started, how to use the tool, and how to run the experiments from the paper.
+This README contains: (1) instructions to quickly get started, (2) a detailed tutorial on how to use the tool, and (3) how to re-run the experiments from the paper and interpret the results.
 
-## Getting Started
+## Getting Started Guide
 
 **Virtual Machine:** The virtual machine should come with all dependencies installed.
-(For later users, the installation instructions can be found in `INSTALL.md`.)
+(For later users, the installation instructions can be found in `INSTALL.md`.) Here is the required info to log in:
 
-    Username: **diffstream**
-    Password: **diffstream**
+```
+Username: diffstream
+Password: diffstream
+```
 
 DiffStream is a testing tool. The tool is used by writing two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
 
 To check that the tool is working properly, you can run `mvn test` (in the top-level directory, where this README is). This runs unit tests.
 
-To quickly validate the paper experiments, we provide the following shell scripts:
+To quickly validate the paper experiments, we provide the following 4 shell scripts:
 
-- (Section 5.1 case study) Run `./run_taxi.sh` and check that it succeeds.
+- **(Section 5.1 case study, ~10 seconds)** Run `./run_taxi.sh`. Verify that 5 tests are run and that the build succeeds.
 
-- (Section 5.2 case study)
+- **(Section 5.2 case study, ~10 minutes)**
 
-- (Section 5.3 case study) Run `./run_mapreduce.sh`. Verify that the 12 test results pass and the script says BUILD SUCCEEDED. (Each checkmark in the Section 5.3 table corresponds to one test result, except the final row, StrConcat, where the two checkmarks correspond to 4 tests.) Please note that because these are random tests, it is possible (though unlikely) that a test may not detect the bug, and the script will fail. If so, run the script again.
+- **(Section 5.3 case study, ~1 minute)** Run `./run_mapreduce.sh`. Verify that the 12 test results pass and the script says BUILD SUCCEEDED. (Each checkmark in the Section 5.3 table corresponds to one test result, except the final row, StrConcat, where the two checkmarks correspond to 4 tests.) Please note that because these are random tests, it is possible (though unlikely) that a test may not detect the bug, and the script will fail. If so, run the script again.
 
-- (Section 5.4 case study) Run `./run_online_monitoring.sh -l 1000 -t 120` and after it finishes, check that 3 plots have been produced in `data/online-monitoring//server_load_1000_time_120_leftpar_1_right_par_2`.
+- **(Section 5.4 case study, ~5 minutes)** Run `./run_online_monitoring.sh -l 1000 -t 120` and after it finishes, check that 3 plots have been produced in `data/online-monitoring//server_load_1000_time_120_leftpar_1_right_par_2`.
 
 More detail on each of these case studies can be found under "Running the Experiments".
 
 ## Tutorial
 
-## Running the Experiments
+## Step By Step Instructions: Running the Experiments
 
 ### 5.1 Taxi Distance
 
