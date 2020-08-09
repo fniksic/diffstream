@@ -17,6 +17,13 @@ Password: diffstream
 
 Note: We suggest running the VM with at least 6GB of RAM and 2 processor cores so that everything runs smoothly. With less than 2 cores, there won't be visible scalability in the Topic Count experiment.
 
+**Addendum: running the VM**
+[VirtualBox](https://www.virtualbox.org/) can be used to open the VM.
+Once the machine loads, you can then find DiffStream in Files (~/diffstream).
+Open `README.md`, which should be identical to this file, *except* for missing this paragraph.
+Please note that many tests in this file will print out "WARNING:" statements unrelated to DiffStream, but related to certain dependencies; these can safely be ignored.
+Finally, for the Tutorial and Step-by-Step Guide below, we recommend using IntelliJ to open and browse source code .java files. It should be installed (search for it in the dash).
+
 DiffStream is a testing tool. The tool is used by writing two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
 
 To check that the tool is working properly, you can run `mvn test` (in the top-level directory, where this README is). This runs unit tests.
@@ -81,7 +88,6 @@ mvn test -Dtest=SumTest#testDifferentialSeq
 The general outline of the tests is the same as in the previous example. The difference is that instead of testing whether fixed streams are equivalent, we are testing whether the outputs of programs are equivalent. The first two tests compare the output of the sequential and the parallel program with a manually provided stream, resembling a traditional unit test. The last two tests are differential tests. `SumTest.testDifferential` compares the parallel program against the sequential program, with the latter essentially serving as a form of specification for what the former should output. `SumTest.testDifferentialSeq` compares a parallelized version of the sequential program against the sequential program itself. Here, the parallelization is achieved by simply instantiating several instances of the program, which is shown not to be correct by the test.
 
 We suggest tweaking the constant called `PARALLELISM` defined on top of `SumTest`. Try setting it to 1. Will all the tests succeed? Another interesting thing to try is to change the input stream in `SumTest.testDifferentialSeq`. Even if the stream contains only one `Value` and one `Barrier`, and provided that `PARALLELISM` is more than 1, the test should reveal the two programs are not equivalent. We will encounter the same phenomenon again in the Topic Count case study, which is essentially a more realistic version of the Sum example.
-
 
 ## Step By Step Instructions: Running the Experiments
 
