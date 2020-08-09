@@ -114,6 +114,8 @@ More detail on each of these case studies can be found under "Running the Experi
 
 ## Step By Step Instructions: Running the Experiments
 
+These instructions are divided based on the section of the paper that they correspond to.
+
 ### 5.1 Taxi Distance
 
 The source code of the Taxi Distance experiment is located in
@@ -276,9 +278,13 @@ The two plots that have time on the x-axis (used_memory_in_time, unmatched_in_ti
 
 ## Additional Information
 
-### Summary of claims in the paper supported by the artifact
+### Summary of claims in the paper supported by the artifact VM
 
+This artifact supports the claims in the paper made in Section 5.
 
+The case studies in sections 5.1 and 5.3 are fully supported by the artifact, as all of the tests can be re-run and verified.
+
+The case studies in 5.2 and 5.4 are partially supported. All of the tests can be re-run, but the performance numbers differ due to being run in a VM. However, the results appear to show similar trends to what is in the paper.
 
 ### Availability
 
