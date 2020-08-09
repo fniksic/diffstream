@@ -35,7 +35,29 @@ More detail on each of these case studies can be found under "Running the Experi
 
 ### 5.1 Taxi Distance
 
+The source code of the Taxi Distance experiment is located in
+`examples/taxi`. To run all the TaxiDistance tests, you can just use
+the script `./run_taxi.sh`, but we suggest using IntelliJ to open the
+tests described below one by one, and running them by clicking the
+green arrow next to their definitions in IntelliJ. The wrong parallel
+implementation is caught by two tests (`testPositionsByKey`,
+`testPositionsByKeyInputGenerator`) in file
+`examples/taxi/src/test/java/edu/upenn/diffstream/examples/taxi/KeyByParallelismTest.java`,
+the first of which uses manual input, while the second uses random
+input generation. The correct parallel implementation is tested
+against the sequential one in
+`correctTestPositionsByKeyInputGenerator` in file
+`examples/taxi/src/test/java/edu/upenn/diffstream/examples/taxi/KeyByParallelismTest.java`. All
+three of these tests follow the structure shown in Figure 10 of the
+paper.
 
+The manual implementation of the matcher (described in Section 5.1)
+can be seen in two files
+(`examples/taxi/src/main/java/edu/upenn/diffstream/examples/taxi/KeyByParallelismManualMatcher.java`,
+`examples/taxi/src/main/java/edu/upenn/diffstream/examples/taxi/KeyByParallelismManualSink.java`). The
+test that uses the manual matcher is named `manualTestPositionsByKey`
+and is in file
+`examples/taxi/src/test/java/edu/upenn/diffstream/examples/taxi/KeyByParallelismTest.java`.
 
 ### 5.2 Topic Count
 
