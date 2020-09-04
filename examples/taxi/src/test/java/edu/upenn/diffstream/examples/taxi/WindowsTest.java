@@ -3,7 +3,7 @@ package edu.upenn.diffstream.examples.taxi;
 import com.ververica.flinktraining.exercises.datastream_java.datatypes.TaxiFare;
 import com.ververica.flinktraining.solutions.datastream_java.windows.HourlyTipsSolution;
 import edu.upenn.diffstream.FullDependence;
-import edu.upenn.diffstream.StreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -95,14 +95,11 @@ public class WindowsTest {
 		DataStream<Tuple3<Long, Long, Float>> wrongOutput =
 			wrongImplementation(input);
 
-		StreamEquivalenceMatcher<Tuple3<Long, Long, Float>> matcher = StreamEquivalenceMatcher.createMatcher(new FullDependence<>());
-		correctOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
-		wrongOutput.addSink(matcher.getSinkRight()).setParallelism(1);
-
-		env.execute();
-
-		matcher.assertStreamsAreEquivalent();
-
+		try (var matcher =
+					 MatcherFactory.createMatcher(correctOutput, wrongOutput, new FullDependence<>())) {
+			env.execute();
+			matcher.assertStreamsAreEquivalent();
+		}
     }
 
     @Ignore

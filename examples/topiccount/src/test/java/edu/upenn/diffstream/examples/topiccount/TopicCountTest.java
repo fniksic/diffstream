@@ -1,8 +1,7 @@
 package edu.upenn.diffstream.examples.topiccount;
 
-import edu.upenn.diffstream.EmptyDependence;
 import edu.upenn.diffstream.FullDependence;
-import edu.upenn.diffstream.StreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -36,10 +35,11 @@ public class TopicCountTest {
                 new Word("math"), new Word("a"), new Word("boat"), new Word("larry"), new EndOfFile());
         DataStream<String> outStreamSeq = new TopicCountSequential().apply(inStream);
         DataStream<String> outStreamPar = new TopicCountSequential(4).apply(inStream);
-        StreamEquivalenceMatcher<String> matcher =
-                StreamEquivalenceMatcher.createMatcher(outStreamSeq, outStreamPar, new FullDependence<>());
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                     MatcherFactory.createMatcher(outStreamSeq, outStreamPar, new FullDependence<>())) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     @Ignore
@@ -54,10 +54,11 @@ public class TopicCountTest {
                 new Word("math"), new Word("a"), new Word("boat"), new Word("larry"), new EndOfFile());
         DataStream<String> outStreamSeq = new TopicCountSequential().apply(inStream);
         DataStream<String> outStreamPar = new TopicCountParallel(4).apply(inStream);
-        StreamEquivalenceMatcher<String> matcher =
-                StreamEquivalenceMatcher.createMatcher(outStreamSeq, outStreamPar, new EmptyDependence<>());
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                     MatcherFactory.createMatcher(outStreamSeq, outStreamPar, new FullDependence<>())) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     @Ignore
@@ -84,9 +85,11 @@ public class TopicCountTest {
                 .countWindowAll(wordsPerDocument * totalDocuments)
                 .sum(0);
         DataStream<Integer> expected = env.fromElements(wordsPerDocument * totalDocuments);
-        StreamEquivalenceMatcher<Integer> matcher =
-                StreamEquivalenceMatcher.createMatcher(out, expected, new FullDependence<>());
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                     MatcherFactory.createMatcher(out, expected, new FullDependence<>())) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
+
 }

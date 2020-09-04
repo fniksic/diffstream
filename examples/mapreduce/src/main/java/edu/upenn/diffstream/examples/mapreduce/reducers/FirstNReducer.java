@@ -5,7 +5,6 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 4. FirstNReducer
@@ -14,19 +13,20 @@ import java.util.Set;
  */
 public class FirstNReducer implements
         AggregateFunction<ReducerExamplesItem,
-                          Tuple2<Set<ReducerExamplesItem>, Integer>,
-                          Set<ReducerExamplesItem>>
-{
-    public Tuple2<Set<ReducerExamplesItem>, Integer> createAccumulator() {
-        Set<ReducerExamplesItem> s = new HashSet<>();
+                Tuple2<HashSet<ReducerExamplesItem>, Integer>,
+                HashSet<ReducerExamplesItem>> {
+
+    public Tuple2<HashSet<ReducerExamplesItem>, Integer> createAccumulator() {
+        HashSet<ReducerExamplesItem> s = new HashSet<>();
         Integer count = 0;
         return new Tuple2<>(s, count);
     }
-    public Tuple2<Set<ReducerExamplesItem>, Integer> add(
+
+    public Tuple2<HashSet<ReducerExamplesItem>, Integer> add(
             ReducerExamplesItem newItem,
-            Tuple2<Set<ReducerExamplesItem>, Integer> state
+            Tuple2<HashSet<ReducerExamplesItem>, Integer> state
     ) {
-        Set<ReducerExamplesItem> items = state.f0;
+        HashSet<ReducerExamplesItem> items = state.f0;
         Integer count = state.f1;
         count++;
         if (count <= 5) {
@@ -34,14 +34,17 @@ public class FirstNReducer implements
         }
         return new Tuple2<>(items, count);
     }
-    public Set<ReducerExamplesItem> getResult(Tuple2<Set<ReducerExamplesItem>,
-                                              Integer> state) {
+
+    public HashSet<ReducerExamplesItem> getResult(Tuple2<HashSet<ReducerExamplesItem>,
+            Integer> state) {
         return state.f0;
     }
-    public Tuple2<Set<ReducerExamplesItem>, Integer> merge(
-        Tuple2<Set<ReducerExamplesItem>, Integer> ignore1,
-        Tuple2<Set<ReducerExamplesItem>, Integer> ignore2
+
+    public Tuple2<HashSet<ReducerExamplesItem>, Integer> merge(
+            Tuple2<HashSet<ReducerExamplesItem>, Integer> ignore1,
+            Tuple2<HashSet<ReducerExamplesItem>, Integer> ignore2
     ) {
         throw new RuntimeException("'merge' should not be called");
     }
+
 }

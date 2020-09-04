@@ -4,7 +4,8 @@ package edu.upenn.diffstream.examples.mapreduce;
 import edu.upenn.diffstream.Dependence;
 import edu.upenn.diffstream.EmptyDependence;
 import edu.upenn.diffstream.FullDependence;
-import edu.upenn.diffstream.StreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
+import edu.upenn.diffstream.matcher.StreamEquivalenceMatcher;
 import edu.upenn.diffstream.examples.mapreduce.reducers.*;
 
 /* Flink Imports */
@@ -28,8 +29,11 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 public class MapReduceNondeterminismTest {
 
@@ -85,7 +89,7 @@ public class MapReduceNondeterminismTest {
 
     // A basic template for tests in DiffStream, which also prints the result
     // that is detected (streams equivalent or not equivalent)
-    public <OutType> void diffStreamTest(
+    public <OutType extends Serializable> void diffStreamTest(
         String testInfo,
         String expectingInfo,
         StreamExecutionEnvironment flinkEnv,
@@ -103,12 +107,7 @@ public class MapReduceNondeterminismTest {
                 printMapper("        PAR OUTPUT: ", parOutput);
         }
 
-        StreamEquivalenceMatcher<OutType> matcher =
-            StreamEquivalenceMatcher.createMatcher(
-                seqOutput, parOutput, dependence
-            );
-
-        try {
+        try (var matcher = MatcherFactory.createMatcher(seqOutput, parOutput, dependence)) {
             flinkEnv.execute();
             matcher.assertStreamsAreEquivalent();
         }
@@ -127,7 +126,7 @@ public class MapReduceNondeterminismTest {
     // More specific template for MapReduce, used throughout this file.
     // The template requires that the reducer be implemented as an
     // AggregateFunction.
-    public <AccType, OutType> void mapReduceTest(
+    public <AccType, OutType extends Serializable> void mapReduceTest(
         String testInfo,
         String expectingInfo,
         SourceFunction<ReducerExamplesItem> inputSource,
@@ -293,7 +292,7 @@ public class MapReduceNondeterminismTest {
     // String equality.
     // In this class, we check for equivalence by considering the string to be
     // a set of strings concatenated with "@".
-    private static class StringWithSeparators {
+    private static class StringWithSeparators implements Serializable {
         public String s;
 
         public StringWithSeparators(String s) {

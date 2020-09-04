@@ -1,6 +1,6 @@
 package edu.upenn.diffstream.examples.taxi;
 
-import edu.upenn.diffstream.StreamsNotEquivalentException;
+import edu.upenn.diffstream.matcher.StreamsNotEquivalentException;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 

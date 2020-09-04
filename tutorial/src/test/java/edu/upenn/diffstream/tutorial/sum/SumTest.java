@@ -1,6 +1,7 @@
 package edu.upenn.diffstream.tutorial.sum;
 
-import edu.upenn.diffstream.StreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
+import edu.upenn.diffstream.matcher.StreamEquivalenceMatcher;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -62,12 +63,13 @@ public class SumTest {
         // In the matcher we use a full dependence relation (everything is dependent), given as a
         // lambda expression {@code (x, y) -> true} that always returns {@code true}. This means we
         // want to compare {@code outputStream} and {@code expectedStream} as sequences.
-        StreamEquivalenceMatcher<Integer> matcher =
-                StreamEquivalenceMatcher.createMatcher(outputStream, expectedStream, (x, y) -> true);
+        try (var matcher =
+                MatcherFactory.createMatcher(outputStream, expectedStream, (x, y) -> true)) {
 
-        // We execute the program on the environment and assert that the streams are equivalent.
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+            // We execute the program on the environment and assert that the streams are equivalent.
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     /**
@@ -92,10 +94,11 @@ public class SumTest {
         DataStream<Integer> expectedStream = env.fromElements(1, 3);
 
         // As above, we use a full dependence relation to compare the output streams as sequences.
-        StreamEquivalenceMatcher<Integer> matcher =
-                StreamEquivalenceMatcher.createMatcher(outputStream, expectedStream, (x, y) -> true);
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                MatcherFactory.createMatcher(outputStream, expectedStream, (x, y) -> true)) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     /**
@@ -122,10 +125,11 @@ public class SumTest {
         DataStream<Integer> parallelOutput = new SumParallel(PARALLELISM).apply(inputStream);
 
         // We run the matcher with full dependence relation, comparing the outputs as sequences.
-        StreamEquivalenceMatcher<Integer> matcher =
-                StreamEquivalenceMatcher.createMatcher(sequentialOutput, parallelOutput, (x, y) -> true);
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                MatcherFactory.createMatcher(sequentialOutput, parallelOutput, (x, y) -> true)) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     /**
@@ -152,9 +156,11 @@ public class SumTest {
         DataStream<Integer> parallelOutput = new SumSequential(PARALLELISM).apply(inputStream);
 
         // We run the matcher with full dependence relation, comparing the outputs as sequences.
-        StreamEquivalenceMatcher<Integer> matcher =
-                StreamEquivalenceMatcher.createMatcher(sequentialOutput, parallelOutput, (x, y) -> true);
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                MatcherFactory.createMatcher(sequentialOutput, parallelOutput, (x, y) -> true)) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
+
 }

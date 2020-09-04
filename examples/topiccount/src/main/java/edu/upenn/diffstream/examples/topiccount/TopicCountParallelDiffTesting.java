@@ -1,9 +1,9 @@
 package edu.upenn.diffstream.examples.topiccount;
 
 import edu.upenn.diffstream.FullDependence;
-import edu.upenn.diffstream.StreamsNotEquivalentException;
-import edu.upenn.diffstream.remote.RemoteMatcherFactory;
-import edu.upenn.diffstream.remote.RemoteStreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
+import edu.upenn.diffstream.matcher.StreamsNotEquivalentException;
+import edu.upenn.diffstream.monitor.ResourceMonitor;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -25,11 +25,12 @@ public class TopicCountParallelDiffTesting {
         DataStream<String> outStreamExpected = new TopicCountSequential().apply(inStream);
         DataStream<String> outStreamParallel = new TopicCountParallel(conf.getParallelism()).apply(inStream);
 
-        RemoteMatcherFactory.init();
-        RemoteStreamEquivalenceMatcher<String> matcher =
-                RemoteMatcherFactory.getInstance().createMatcher(outStreamExpected, outStreamParallel, new FullDependence<>());
-
-        try {
+        MatcherFactory.initRemote();
+        try (var matcher =
+                     MatcherFactory.createRemoteMatcher(outStreamExpected, outStreamParallel, new FullDependence<>());
+             var monitor =
+                     new ResourceMonitor(matcher, "unmatched-items.txt", "memory-log.txt")) {
+            monitor.start();
             JobExecutionResult result = env.execute();
             matcher.assertStreamsAreEquivalent();
             System.out.println("Streams are equivalent!");
@@ -41,7 +42,7 @@ public class TopicCountParallelDiffTesting {
                 throw e;
             }
         } finally {
-            RemoteMatcherFactory.destroy();
+            MatcherFactory.destroyRemote();
         }
     }
 

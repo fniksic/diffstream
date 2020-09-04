@@ -4,7 +4,6 @@ import edu.upenn.diffstream.examples.mapreduce.ReducerExamplesItem;
 import org.apache.flink.api.common.functions.AggregateFunction;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 2. IndexValuePair reducer
@@ -12,21 +11,26 @@ import java.util.Map;
  */
 public class IndexValuePairReducer implements
         AggregateFunction<ReducerExamplesItem,
-                          Map<Integer, Integer>,
-                          Map<Integer, Integer>> {
-    public Map<Integer, Integer> createAccumulator() {
+                HashMap<Integer, Integer>,
+                HashMap<Integer, Integer>> {
+
+    public HashMap<Integer, Integer> createAccumulator() {
         return new HashMap<>();
     }
-    public Map<Integer, Integer> add(ReducerExamplesItem in,
-                                     Map<Integer, Integer> outmap) {
+
+    public HashMap<Integer, Integer> add(ReducerExamplesItem in,
+                                         HashMap<Integer, Integer> outmap) {
         outmap.put(in.x, in.y);
         return outmap;
     }
-    public Map<Integer, Integer> getResult(Map<Integer, Integer> outmap) {
+
+    public HashMap<Integer, Integer> getResult(HashMap<Integer, Integer> outmap) {
         return outmap;
     }
-    public Map<Integer, Integer> merge(Map<Integer, Integer> ignore1,
-                                       Map<Integer, Integer> ignore2) {
+
+    public HashMap<Integer, Integer> merge(HashMap<Integer, Integer> ignore1,
+                                           HashMap<Integer, Integer> ignore2) {
         throw new RuntimeException("'merge' should not be called");
     }
+
 }

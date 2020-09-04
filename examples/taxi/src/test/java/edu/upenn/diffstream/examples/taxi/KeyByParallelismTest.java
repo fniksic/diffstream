@@ -3,7 +3,7 @@ package edu.upenn.diffstream.examples.taxi;
 import com.pholser.junit.quickcheck.generator.Generator;
 import com.pholser.junit.quickcheck.generator.InRange;
 import edu.upenn.diffstream.InputGenerator;
-import edu.upenn.diffstream.StreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -117,14 +117,11 @@ public class KeyByParallelismTest {
 
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
 
-        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
-        seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
-        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
-
-        env.execute();
-
-        matcher.assertStreamsAreEquivalent();
-
+        try (var matcher =
+                     MatcherFactory.createMatcher(seqOutput, parallelOutput, new KeyByParallelismDependence())) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     @Test(expected = Exception.class)
@@ -139,12 +136,11 @@ public class KeyByParallelismTest {
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> parallelOutput = parallelComputation(input);
 
-        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher =
-                StreamEquivalenceMatcher.createMatcher(seqOutput, parallelOutput, (fst, snd) -> fst.f0.equals(snd.f0));
-
-        env.execute();
-
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                     MatcherFactory.createMatcher(seqOutput, parallelOutput, (fst, snd) -> fst.f0.equals(snd.f0))) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     @Test
@@ -159,14 +155,11 @@ public class KeyByParallelismTest {
         KeyedStream<Tuple2<Long, Tuple2<Long, Long>>, Tuple> seqOutput = sequentialComputation(input);
         DataStream<Tuple2<Long, Tuple2<Long, Long>>> parallelOutput = correctParallelComputation(input);
 
-
-        StreamEquivalenceMatcher<Tuple2<Long, Tuple2<Long, Long>>> matcher = StreamEquivalenceMatcher.createMatcher(new KeyByParallelismDependence());
-        seqOutput.addSink(matcher.getSinkLeft()).setParallelism(1);
-        parallelOutput.addSink(matcher.getSinkRight()).setParallelism(1);
-
-        env.execute();
-
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                     MatcherFactory.createMatcher(seqOutput, parallelOutput, new KeyByParallelismDependence())) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
 

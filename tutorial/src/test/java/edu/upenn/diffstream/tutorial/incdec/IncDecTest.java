@@ -1,6 +1,7 @@
 package edu.upenn.diffstream.tutorial.incdec;
 
-import edu.upenn.diffstream.StreamEquivalenceMatcher;
+import edu.upenn.diffstream.matcher.MatcherFactory;
+import edu.upenn.diffstream.matcher.StreamEquivalenceMatcher;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -62,19 +63,19 @@ public class IncDecTest {
                 new Dec(1), new Inc(3), new Barrier()
         );
 
-        // We create a matcher for the two streams, with and instance of IncDecDependence
+        // We create a matcher for the two streams, with an instance of IncDecDependence
         // dependence relation.
-        StreamEquivalenceMatcher<IncDecItem> matcher =
-                StreamEquivalenceMatcher.createMatcher(first, second, new IncDecDependence());
+        try (var matcher =
+                     MatcherFactory.createMatcher(first, second, new IncDecDependence())) {
+            // With the two manually defined streams serving as sources and the matcher serving
+            // as sinks, we have defined a Flink program. We execute it on the execution
+            // environment.
+            env.execute();
 
-        // With the two manually defined streams serving as sources and the matcher serving
-        // as sinks, we have defined a Flink program. We execute it on the execution
-        // environment.
-        env.execute();
-
-        // We assert that the streams are equivalent. Since this is not the case,
-        // the assertion will throw an exception, as expected by our test case.
-        matcher.assertStreamsAreEquivalent();
+            // We assert that the streams are equivalent. Since this is not the case,
+            // the assertion will throw an exception, as expected by our test case.
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 
     /**
@@ -106,9 +107,10 @@ public class IncDecTest {
         // We create a matcher for the two streams with an instance of IncDecDependence
         // dependence relation. We execute the Flink program on the execution environment
         // and assert equivalence of the two streams.
-        StreamEquivalenceMatcher<IncDecItem> matcher =
-                StreamEquivalenceMatcher.createMatcher(first, second, new IncDecDependence());
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
+        try (var matcher =
+                MatcherFactory.createMatcher(first, second, new IncDecDependence())) {
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        }
     }
 }
