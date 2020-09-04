@@ -1,15 +1,23 @@
 package edu.upenn.diffstream.remote;
 
 import edu.upenn.diffstream.Dependence;
+import edu.upenn.diffstream.matcher.MatcherFactory;
+import edu.upenn.diffstream.matcher.StreamsNotEquivalentException;
+import edu.upenn.diffstream.monitor.ResourceMonitor;
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.test.util.MiniClusterWithClientResource;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.rmi.RemoteException;
+
+@Ignore
 public class RemoteTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteTest.class);
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
@@ -19,58 +27,54 @@ public class RemoteTest {
                             .setNumberTaskManagers(1)
                             .build());
 
-    @Ignore
-    @Test(expected = Exception.class)
-    public void testRemoteIncDecNonEquivalent() throws Exception {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    public static ResourceMonitor monitor =
+            new ResourceMonitor("unmatched-items.txt", "memory-log.txt");
 
-        env.setParallelism(2);
-
-        DataStream<Integer> first = env.fromElements(1, 2, 0, 3, 1, 0, 2).setParallelism(1);
-        DataStream<Integer> second = env.fromElements(2, 1, 0, 1, 3, 0).setParallelism(1);
-
-        RemoteMatcherFactory.init();
-        RemoteStreamEquivalenceMatcher<Integer> matcher = RemoteMatcherFactory.getInstance().
-                createMatcher(first, second, new DifferentSign());
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
-        RemoteMatcherFactory.destroy();
+    @BeforeClass
+    public static void initRemote() throws RemoteException {
+        MatcherFactory.initRemote();
+        monitor.start();
     }
 
-    @Ignore
-    @Test
-    public void testRemoteIncDecEquivalent() throws Exception {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-        env.setParallelism(2);
-
-        DataStream<Integer> first = env.fromElements(1, 2, 0, 3, 1, 0).setParallelism(1);
-        DataStream<Integer> second = env.fromElements(2, 1, 0, 1, 3, 0).setParallelism(1);
-
-        RemoteMatcherFactory.init();
-        RemoteStreamEquivalenceMatcher<Integer> matcher = RemoteMatcherFactory.getInstance().
-                createMatcher(first, second, new DifferentSign());
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
-        RemoteMatcherFactory.destroy();
+    @AfterClass
+    public static void destroyRemote() throws RemoteException {
+        monitor.close();
+        MatcherFactory.destroyRemote();
     }
 
-    @Ignore
-    @Test
-    public void testRemoteIncDecEquivalentLogUnmatched() throws Exception {
+    @Test(expected = StreamsNotEquivalentException.class)
+    public void testRemoteIncDecNonEquivalent() throws StreamsNotEquivalentException {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        runTest(env, env.fromElements(1, 2, 0, 3, 1, 0, 2), env.fromElements(2, 1, 0, 1, 3, 0));
+    }
 
-        env.setParallelism(2);
+    @Test
+    public void testRemoteIncDecEquivalent() throws StreamsNotEquivalentException {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        runTest(env, env.fromElements(1, 2, 0, 3, 1, 0), env.fromElements(2, 1, 0, 1, 3, 0));
+    }
 
-        DataStream<Integer> first = env.fromElements(1, 2, 0, 3, 1, 0).setParallelism(1);
-        DataStream<Integer> second = env.fromElements(2, 1, 0, 1, 3, 0).setParallelism(1);
+    @Test
+    public void testRemoteIncDecEquivalentLogUnmatched() throws StreamsNotEquivalentException {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        runTest(env, env.fromElements(1, 2, 0, 3, 1, 0), env.fromElements(2, 1, 0, 1, 3, 0));
+    }
 
-        RemoteMatcherFactory.init();
-        RemoteStreamEquivalenceMatcher<Integer> matcher = RemoteMatcherFactory.getInstance().
-                createMatcher(first, second, new DifferentSign(), true);
-        env.execute();
-        matcher.assertStreamsAreEquivalent();
-        RemoteMatcherFactory.destroy();
+    private void runTest(StreamExecutionEnvironment env,
+                         DataStream<Integer> first,
+                         DataStream<Integer> second) throws StreamsNotEquivalentException {
+        env.setParallelism(1);
+        try (var matcher = MatcherFactory.createRemoteMatcher(first, second, new DifferentSign());
+             AutoCloseable ignored = () -> monitor.unobserve(matcher)) {
+            monitor.observe(matcher);
+            env.execute();
+            matcher.assertStreamsAreEquivalent();
+        } catch (Exception e) {
+            if (StreamsNotEquivalentException.isRootCauseOf(e)) {
+                throw new StreamsNotEquivalentException();
+            }
+            LOG.error("Test not executed due to exception", e);
+        }
     }
 
     private static class DifferentSign implements Dependence<Integer> {
@@ -81,4 +85,5 @@ public class RemoteTest {
         }
 
     }
+
 }

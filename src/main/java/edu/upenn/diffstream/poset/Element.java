@@ -4,11 +4,11 @@ import java.util.*;
 
 public class Element<T> {
 
-    private T value;
+    private final T value;
 
-    private List<Element<T>> immediateSuccessors = new ArrayList<>();
+    private final List<Element<T>> immediateSuccessors = new ArrayList<>();
 
-    private List<Element<T>> immediatePredecessors = new LinkedList<>();
+    private final List<Element<T>> immediatePredecessors = new LinkedList<>();
 
     public Element(T value) {
         this.value = value;
@@ -66,4 +66,5 @@ public class Element<T> {
 
         return false;
     }
+
 }

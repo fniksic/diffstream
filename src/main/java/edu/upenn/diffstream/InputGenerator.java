@@ -28,117 +28,118 @@ import static java.util.Collections.emptyMap;
 // KK: This might have to be parametrized by some type??
 public class InputGenerator<T> implements SourceFunction<Integer> {
 
-	// KK: From what I understand isRunning must be volatile
-	//     because the `run` function runs indefinitely until
-	//     cancel is called by another thread.
-	private volatile boolean isRunning = true;
+    // KK: From what I understand isRunning must be volatile
+    //     because the `run` function runs indefinitely until
+    //     cancel is called by another thread.
+    private volatile boolean isRunning = true;
 
-	// Fields needed for generation
-	Random randGen;
-	SourceOfRandomness rand;
-	GeometricDistribution geo;
-	SimpleGenerationStatus status;
-	ParameterSampler sampler;
-	GeneratorRepository genRepo;
+    // Fields needed for generation
+    Random randGen;
+    SourceOfRandomness rand;
+    GeometricDistribution geo;
+    SimpleGenerationStatus status;
+    ParameterSampler sampler;
+    GeneratorRepository genRepo;
 
-	// Needed to turn collection into datastream
-	StreamExecutionEnvironment env;
-	
-	public InputGenerator(StreamExecutionEnvironment env) {
+    // Needed to turn collection into datastream
+    StreamExecutionEnvironment env;
 
-		// TODO: Maybe remove that if not useful
-		this.env = env;
-		
-		// Instantiate source of randomness and generation status to call the generator
-	        randGen = new Random();
-	        rand = new SourceOfRandomness(randGen);
-	        geo = new GeometricDistribution();
-	        status = new StreamGenerationStatus(geo, rand, 0);
+    public InputGenerator(StreamExecutionEnvironment env) {
 
-		// Save the environment in the status so that it can
-		// be accessed by the DataStream generator
-		status.setValue(new Key<>("flink-env", StreamExecutionEnvironment.class), env);
-		
-		// It seems that I have to initialize and call a
-		// parameter sampler
-	        sampler = new TupleParameterSampler(100); // 100 is the number of trials
+        // TODO: Maybe remove that if not useful
+        this.env = env;
 
-		// Initializing a generator repository so that I can
-		// call the sampler to decide the generator on a
-		// parameter.
-		//
-		// The service loader generator source finds all
-		// defined generators (i.e. those defined by the
-		// framework and those in the
-		// resources/META-INF/services/...Generator file) and
-		// loads them so that they can be used for deciding
-	        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
-	}
+        // Instantiate source of randomness and generation status to call the generator
+        randGen = new Random();
+        rand = new SourceOfRandomness(randGen);
+        geo = new GeometricDistribution();
+        status = new StreamGenerationStatus(geo, rand, 0);
 
-	@Override
-	public void run(SourceFunction.SourceContext<Integer> sourceContext) {
-		
-		// Instantiate a new integer generator
-		// TODO: Make this all parametrizable
-		IntegerGenerator gen = new IntegerGenerator();
+        // Save the environment in the status so that it can
+        // be accessed by the DataStream generator
+        status.setValue(new Key<>("flink-env", StreamExecutionEnvironment.class), env);
 
-		List<Method> testMethods = getClassTestMethods(getClass()); 
+        // It seems that I have to initialize and call a
+        // parameter sampler
+        sampler = new TupleParameterSampler(100); // 100 is the number of trials
 
-		Parameter parameter = testMethods.get(0).getParameters()[0];
+        // Initializing a generator repository so that I can
+        // call the sampler to decide the generator on a
+        // parameter.
+        //
+        // The service loader generator source finds all
+        // defined generators (i.e. those defined by the
+        // framework and those in the
+        // resources/META-INF/services/...Generator file) and
+        // loads them so that they can be used for deciding
+        genRepo = new GeneratorRepository(rand).register(new ServiceLoaderGeneratorSource());
+    }
 
-		Generator<?> generator =
-			parameterGenerator(parameter);
-		generator.generate(rand, status);
+    @Override
+    public void run(SourceFunction.SourceContext<Integer> sourceContext) {
 
-		// TODO: Now that I have both a generator for the type
-		// of the parameter, as well as its type using
-		// reflection. I can instantiate a source that takes
-		// as a parameter the input collection as an array,
-		// and I can then use it to test some sinks.
+        // Instantiate a new integer generator
+        // TODO: Make this all parametrizable
+        IntegerGenerator gen = new IntegerGenerator();
 
-		// TODO: I should probably make a generator for
-		// Datastream, that calls the generator for lists and
-		// then just calls from collection.
-		
-		while (isRunning) {
-			// Integer curr = gen.generate(prng);
-			Integer curr = gen.generate(rand, status);
-			sourceContext.collect(curr);
-		}
-	}
+        List<Method> testMethods = getClassTestMethods(getClass());
 
-	public List<Method> getClassTestMethods(Class<?> clazz) {
-		
-		List<Method> testMethods = new ArrayList<>();
-		
-		for (Method method : clazz.getMethods()) {
-			if (method.getAnnotation(Test.class) != null) {
-				testMethods.add(method);
-			}
-		}
-		
-		return testMethods;
-	}
+        Parameter parameter = testMethods.get(0).getParameters()[0];
 
-	public Generator<?> parameterGenerator(Parameter parameter) {
-		ParameterTypeContext paramTypeContext =
-			new ParameterTypeContext(parameter.getName(),
-						 parameter.getAnnotatedType(),
-						 "", // I am not sure if passing an empty name can be a problem
-						 emptyMap()).allowMixedTypes(true);
-		
-		Generator<?> generator =
-			sampler.decideGenerator(genRepo, paramTypeContext);
-		
-		return generator;
-	}
+        Generator<?> generator =
+                parameterGenerator(parameter);
+        generator.generate(rand, status);
 
-	public T generate(Generator<T> generator) {
-		return generator.generate(rand, status);
-	}
-		
-	@Override
-	public void cancel() {
-		isRunning = false;
-	}
+        // TODO: Now that I have both a generator for the type
+        // of the parameter, as well as its type using
+        // reflection. I can instantiate a source that takes
+        // as a parameter the input collection as an array,
+        // and I can then use it to test some sinks.
+
+        // TODO: I should probably make a generator for
+        // Datastream, that calls the generator for lists and
+        // then just calls from collection.
+
+        while (isRunning) {
+            // Integer curr = gen.generate(prng);
+            Integer curr = gen.generate(rand, status);
+            sourceContext.collect(curr);
+        }
+    }
+
+    public List<Method> getClassTestMethods(Class<?> clazz) {
+
+        List<Method> testMethods = new ArrayList<>();
+
+        for (Method method : clazz.getMethods()) {
+            if (method.getAnnotation(Test.class) != null) {
+                testMethods.add(method);
+            }
+        }
+
+        return testMethods;
+    }
+
+    public Generator<?> parameterGenerator(Parameter parameter) {
+        ParameterTypeContext paramTypeContext =
+                new ParameterTypeContext(parameter.getName(),
+                        parameter.getAnnotatedType(),
+                        "", // I am not sure if passing an empty name can be a problem
+                        emptyMap()).allowMixedTypes(true);
+
+        Generator<?> generator =
+                sampler.decideGenerator(genRepo, paramTypeContext);
+
+        return generator;
+    }
+
+    public T generate(Generator<T> generator) {
+        return generator.generate(rand, status);
+    }
+
+    @Override
+    public void cancel() {
+        isRunning = false;
+    }
+
 }

@@ -6,4 +6,5 @@ public class FullDependence<T> implements Dependence<T> {
     public boolean test(T fst, T snd) {
         return true;
     }
+
 }

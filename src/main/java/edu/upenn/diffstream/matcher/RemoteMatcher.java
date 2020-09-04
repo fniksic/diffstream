@@ -1,6 +1,4 @@
-package edu.upenn.diffstream.remote;
-
-import edu.upenn.diffstream.StreamsNotEquivalentException;
+package edu.upenn.diffstream.matcher;
 
 import java.io.Serializable;
 import java.rmi.Remote;

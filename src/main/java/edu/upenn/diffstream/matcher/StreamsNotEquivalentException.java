@@ -1,4 +1,4 @@
-package edu.upenn.diffstream;
+package edu.upenn.diffstream.matcher;
 
 public class StreamsNotEquivalentException extends Exception {
 

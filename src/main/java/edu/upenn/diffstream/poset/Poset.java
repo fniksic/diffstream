@@ -9,11 +9,11 @@ import java.util.List;
 
 public class Poset<T> {
 
-    private Dependence<T> dependence;
+    private final Dependence<T> dependence;
 
-    private List<Element<T>> minimalElements = new LinkedList<>();
+    private final List<Element<T>> minimalElements = new LinkedList<>();
 
-    private Deque<Element<T>> elements = new LinkedList<>();
+    private final Deque<Element<T>> elements = new LinkedList<>();
 
     public Poset(Dependence<T> dependence) {
         this.dependence = dependence;
@@ -95,5 +95,8 @@ public class Poset<T> {
         return elements.isEmpty();
     }
 
-    public int size() { return elements.size(); }
+    public int size() {
+        return elements.size();
+    }
+
 }

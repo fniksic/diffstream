@@ -6,4 +6,5 @@ public class EmptyDependence<T> implements Dependence<T> {
     public boolean test(T fst, T snd) {
         return false;
     }
+
 }

@@ -19,8 +19,9 @@ public class Tuple3Generator extends ComponentizedGenerator<Tuple3> {
         super(Tuple3.class);
     }
 
-    @Override public Tuple3<?,?,?> generate(SourceOfRandomness random,
-                                            GenerationStatus status) {
+    @Override
+    public Tuple3<?, ?, ?> generate(SourceOfRandomness random,
+                                    GenerationStatus status) {
 
         // TODO: Allow configuring the Tuple2Generator
 
@@ -28,14 +29,15 @@ public class Tuple3Generator extends ComponentizedGenerator<Tuple3> {
         Generator<?> middleGenerator = componentGenerators().get(1);
         Generator<?> rightGenerator = componentGenerators().get(2);
 
-        Tuple3<?,?,?> item = new Tuple3<>(leftGenerator.generate(random, status),
-                                          middleGenerator.generate(random, status),
-                                          rightGenerator.generate(random, status));
+        Tuple3<?, ?, ?> item = new Tuple3<>(leftGenerator.generate(random, status),
+                middleGenerator.generate(random, status),
+                rightGenerator.generate(random, status));
 
         return (item);
     }
 
-    @Override public int numberOfNeededComponents() {
+    @Override
+    public int numberOfNeededComponents() {
         return 3;
     }
 

@@ -7,10 +7,10 @@ import com.pholser.junit.quickcheck.random.SourceOfRandomness;
 public class StreamGenerationStatus extends SimpleGenerationStatus {
 
     public StreamGenerationStatus(
-        GeometricDistribution distro,
-        SourceOfRandomness random,
-        int attempts) {
-	    super(distro, random, attempts);
+            GeometricDistribution distro,
+            SourceOfRandomness random,
+            int attempts) {
+        super(distro, random, attempts);
     }
 
 
@@ -18,11 +18,13 @@ public class StreamGenerationStatus extends SimpleGenerationStatus {
     // least one element
     //
     // Have something better than just hardcoded 100 in the default case
-    @Override public int size() {
-	    int attempts = attempts();
-	    if (attempts > 0)
-		    return attempts;
-	    else
-		    return 100;
-    }	
+    @Override
+    public int size() {
+        int attempts = attempts();
+        if (attempts > 0)
+            return attempts;
+        else
+            return 100;
+    }
+
 }

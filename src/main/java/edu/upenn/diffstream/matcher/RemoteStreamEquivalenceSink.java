@@ -1,4 +1,4 @@
-package edu.upenn.diffstream.remote;
+package edu.upenn.diffstream.matcher;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
@@ -47,8 +47,8 @@ public class RemoteStreamEquivalenceSink<IN extends Serializable> extends RichSi
     public void open(Configuration parameters) throws Exception {
         Registry registry = LocateRegistry.getRegistry();
         RemoteMatcherRepository repository =
-                (RemoteMatcherRepository) registry.lookup(RemoteMatcherFactory.REMOTE_MATCHER_REPOSITORY);
-        remoteMatcher = repository.getMatcherById(matcherId);
+                (RemoteMatcherRepository) registry.lookup(RemoteMatcherRepository.REMOTE_MATCHER_REPOSITORY);
+        remoteMatcher = repository.getRemoteMatcher(matcherId);
     }
 
     @Override
@@ -60,4 +60,5 @@ public class RemoteStreamEquivalenceSink<IN extends Serializable> extends RichSi
     public void invoke(IN item, Context context) throws Exception {
         remoteMatcher.processItem(item, left);
     }
+
 }
