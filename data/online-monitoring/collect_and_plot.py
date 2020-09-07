@@ -32,9 +32,7 @@ dir_name = sys.argv[1]
 def parse_memories(dir_name):
     with open(dir_name + "/memory-log.txt") as f:
         lines = f.readlines()
-        # Drop the first line since it is a header
-        no_header_lines = lines[1:]
-        memories = [parse_memory_line(line) for line in no_header_lines]
+        memories = [parse_memory_line(line) for line in lines]
         return memories
 
 def parse_memory_line(line):
@@ -54,9 +52,7 @@ def plot_memories_in_time(dir_name, memories):
 def parse_unmatched(dir_name):
     with open(dir_name + "/unmatched-items.txt") as f:
         lines = f.readlines()
-        # Drop the first line since it is a header
-        no_header_lines = lines[1:]
-        unmatched = [parse_unmatched_line(line) for line in no_header_lines]
+        unmatched = [parse_unmatched_line(line) for line in lines]
         return unmatched
 
 def parse_unmatched_line(line):
