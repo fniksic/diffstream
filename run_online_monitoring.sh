@@ -67,6 +67,7 @@ echo "Storing the results in ${RESULTS_DIR}"
 mkdir -p "../${RESULTS_DIR}"
 cp memory-log.txt "../${RESULTS_DIR}/"
 cp unmatched-items.txt "../${RESULTS_DIR}/"
+mv durations-matcher-id-1.bin "../${RESULTS_DIR}/"
 
 ## Plot the results
 echo "Producing plots..."

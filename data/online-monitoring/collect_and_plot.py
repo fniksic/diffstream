@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from datetime import datetime
 
 SMALL_SIZE = 14
 MEDIUM_SIZE = 16
@@ -56,6 +57,8 @@ def parse_unmatched(dir_name):
         return unmatched
 
 def parse_unmatched_line(line):
+    timestamp = datetime.strptime(line[0:26], "%Y-%m-%d %H:%M:%S,%f")
+    line = line[27:]
     unmatched_left = line.split(": ")[2].split(" ")[0]
     unmatched_right = line.split(": ")[3].split(" ")[0].rstrip()
     return (int(unmatched_left), int(unmatched_right))

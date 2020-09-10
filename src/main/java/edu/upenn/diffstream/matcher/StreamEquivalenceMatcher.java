@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class StreamEquivalenceMatcher<IN extends Serializable> implements RemoteMatcher<IN>, AutoCloseable {
 
@@ -21,9 +23,11 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
     private boolean detectedNonEquivalence = false;
 
     // Statistics
-    private int processedItems = 0;
+    private boolean isCollectingStatistics = false;
+    private volatile int processedItems = 0;
     private long totalProcessingDuration = 0;
     private long maxProcessingDuration = 0;
+    private Queue<Long> durations = new ConcurrentLinkedQueue<>();
 
     StreamEquivalenceMatcher(long id, Dependence<IN> dependence, boolean isRemote) {
         this.id = id;
@@ -51,9 +55,12 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
             }
         } finally {
             final long duration = start.until(Instant.now(), ChronoUnit.NANOS);
-            processedItems++;
-            totalProcessingDuration += duration;
-            maxProcessingDuration = Math.max(maxProcessingDuration, duration);
+            if (isCollectingStatistics) {
+                totalProcessingDuration += duration;
+                maxProcessingDuration = Math.max(maxProcessingDuration, duration);
+                durations.add(duration);
+                processedItems++;
+            }
         }
     }
 
@@ -95,6 +102,22 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
                 " totalDuration (ns): " + totalProcessingDuration +
                 " avgDuration (ns): " + avgDuration +
                 " maxDuration (ns): " + maxProcessingDuration;
+    }
+
+    public int getProcessedItems() {
+        return processedItems;
+    }
+
+    public Queue<Long> getDurations() {
+        return durations;
+    }
+
+    public synchronized void startCollectingStatistics() {
+        isCollectingStatistics = true;
+    }
+
+    public synchronized void stopCollectingStatistics() {
+        isCollectingStatistics = false;
     }
 
     @Override
