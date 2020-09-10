@@ -6,11 +6,9 @@ import edu.upenn.diffstream.poset.Poset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
+import java.io.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class StreamEquivalenceMatcher<IN extends Serializable> implements RemoteMatcher<IN>, AutoCloseable {
 
@@ -24,10 +22,10 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
 
     // Statistics
     private boolean isCollectingStatistics = false;
-    private volatile int processedItems = 0;
+    private int processedItems = 0;
     private long totalProcessingDuration = 0;
     private long maxProcessingDuration = 0;
-    private Queue<Long> durations = new ConcurrentLinkedQueue<>();
+    private DataOutputStream outputStream = null;
 
     StreamEquivalenceMatcher(long id, Dependence<IN> dependence, boolean isRemote) {
         this.id = id;
@@ -58,8 +56,12 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
             if (isCollectingStatistics) {
                 totalProcessingDuration += duration;
                 maxProcessingDuration = Math.max(maxProcessingDuration, duration);
-                durations.add(duration);
                 processedItems++;
+                try {
+                    outputStream.writeLong(duration);
+                } catch (IOException ignored) {
+
+                }
             }
         }
     }
@@ -104,20 +106,25 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
                 " maxDuration (ns): " + maxProcessingDuration;
     }
 
-    public int getProcessedItems() {
-        return processedItems;
-    }
-
-    public Queue<Long> getDurations() {
-        return durations;
-    }
-
     public synchronized void startCollectingStatistics() {
-        isCollectingStatistics = true;
+        try {
+            final FileOutputStream fileOutputStream = new FileOutputStream("durations-matcher-id-" + id + ".bin");
+            outputStream = new DataOutputStream(new BufferedOutputStream(fileOutputStream, 65_536));
+            isCollectingStatistics = true;
+        } catch (FileNotFoundException e) {
+            LOG.error("Couldn't open file for writing", e);
+        }
     }
 
     public synchronized void stopCollectingStatistics() {
         isCollectingStatistics = false;
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            LOG.error("Couldn't close file", e);
+        } finally {
+            outputStream = null;
+        }
     }
 
     @Override

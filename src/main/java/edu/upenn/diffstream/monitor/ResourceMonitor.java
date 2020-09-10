@@ -4,12 +4,15 @@ import edu.upenn.diffstream.matcher.StreamEquivalenceMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ResourceMonitor implements Runnable, AutoCloseable {
@@ -23,7 +26,7 @@ public class ResourceMonitor implements Runnable, AutoCloseable {
 
     private final Thread monitorThread = new Thread(this);
     private final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
-    private final Map<Long, MatcherResources> matchers = new ConcurrentHashMap<>();
+    private final Set<StreamEquivalenceMatcher<?>> matchers = ConcurrentHashMap.newKeySet();
     private final String unmatchedItemsFile;
     private final String memoryFile;
 
@@ -36,7 +39,7 @@ public class ResourceMonitor implements Runnable, AutoCloseable {
 
     public ResourceMonitor(StreamEquivalenceMatcher<? extends Serializable> matcher,
                            String unmatchedItemsFile,
-                           String memoryFile) throws FileNotFoundException {
+                           String memoryFile) {
         this(unmatchedItemsFile, memoryFile);
         observe(matcher);
     }
@@ -51,14 +54,7 @@ public class ResourceMonitor implements Runnable, AutoCloseable {
                     memoryMXBean.gc();
                 }
                 memoryWriter.println(getMemoryUsage());
-                matchers.forEach((id, resources) -> {
-                    itemsWriter.println(getTimestamp() + " " + resources.matcher.getStats());
-                    try {
-                        writeDurations(resources);
-                    } catch (final IOException e) {
-                        LOG.error("Couldn't write to file", e);
-                    }
-                });
+                matchers.forEach(matcher -> itemsWriter.println(getTimestamp() + " " + matcher.getStats()));
                 Thread.sleep(1000);
                 second = (second + 1) % GC_CYCLE_SECONDS;
             }
@@ -89,13 +85,7 @@ public class ResourceMonitor implements Runnable, AutoCloseable {
         isRunning = false;
         try {
             monitorThread.join();
-            matchers.forEach((id, resources) -> {
-                try {
-                    finalizeMatcherStatistics(resources);
-                } catch (final IOException e) {
-                    LOG.error("Couldn't close file", e);
-                }
-            });
+            matchers.forEach(StreamEquivalenceMatcher::stopCollectingStatistics);
             matchers.clear();
             LOG.debug("Joined with resource monitor's thread");
         } catch (InterruptedException e) {
@@ -103,52 +93,16 @@ public class ResourceMonitor implements Runnable, AutoCloseable {
         }
     }
 
-    public void observe(StreamEquivalenceMatcher<? extends Serializable> matcher) throws FileNotFoundException {
+    public void observe(StreamEquivalenceMatcher<? extends Serializable> matcher) {
         LOG.debug("Observing matcher with id={}", matcher.getId());
-        final FileOutputStream fileOutputStream = new FileOutputStream("durations-matcher-id-" + matcher.getId() + ".bin");
-        final DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(fileOutputStream));
-        final MatcherResources matcherResources = new MatcherResources(matcher, outputStream);
         matcher.startCollectingStatistics();
-        matchers.put(matcher.getId(), matcherResources);
+        matchers.add(matcher);
     }
 
     public void unobserve(StreamEquivalenceMatcher<? extends Serializable> matcher) throws IOException {
         LOG.debug("Unobserving matcher with id={}", matcher.getId());
-        final MatcherResources matcherResources = matchers.get(matcher.getId());
-        finalizeMatcherStatistics(matcherResources);
-        matchers.remove(matcher.getId());
-    }
-
-    private void finalizeMatcherStatistics(final MatcherResources matcherResources) throws IOException {
-        matcherResources.matcher.stopCollectingStatistics();
-        writeDurations(matcherResources);
-        matcherResources.outputStream.close();
-    }
-
-    private void writeDurations(final MatcherResources matcherResources) throws IOException {
-        synchronized (matcherResources) {
-            final StreamEquivalenceMatcher<?> matcher = matcherResources.matcher;
-            final int processedItems = matcher.getProcessedItems();
-            if (processedItems > matcherResources.totalWrittenDurations) {
-                for (int i = matcherResources.totalWrittenDurations; i < processedItems; ++i) {
-                    matcherResources.outputStream.writeLong(matcher.getDurations().remove());
-                }
-            }
-            matcherResources.totalWrittenDurations = processedItems;
-        }
-    }
-
-    private static class MatcherResources {
-
-        private final StreamEquivalenceMatcher<?> matcher;
-        private final DataOutputStream outputStream;
-        private int totalWrittenDurations = 0;
-
-        public MatcherResources(final StreamEquivalenceMatcher<?> matcher, final DataOutputStream outputStream) {
-            this.matcher = matcher;
-            this.outputStream = outputStream;
-        }
-
+        matcher.stopCollectingStatistics();
+        matchers.remove(matcher);
     }
 
 }
