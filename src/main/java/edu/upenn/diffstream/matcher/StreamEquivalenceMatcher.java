@@ -52,13 +52,14 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
                 processItem(item, unmatchedItemsRight, unmatchedItemsLeft);
             }
         } finally {
-            final long duration = start.until(Instant.now(), ChronoUnit.NANOS);
+            final long duration = start.until(Instant.now(), ChronoUnit.MICROS);
             if (isCollectingStatistics) {
                 totalProcessingDuration += duration;
                 maxProcessingDuration = Math.max(maxProcessingDuration, duration);
                 processedItems++;
                 try {
-                    outputStream.writeLong(duration);
+                    // The duration should fit in a 32-bit integer
+                    outputStream.writeInt((int) duration);
                 } catch (IOException ignored) {
 
                 }
@@ -101,9 +102,9 @@ public class StreamEquivalenceMatcher<IN extends Serializable> implements Remote
                 " left: " + unmatchedItemsLeft.size() +
                 " right: " + unmatchedItemsRight.size() +
                 " totalProcessed: " + processedItems +
-                " totalDuration (ns): " + totalProcessingDuration +
-                " avgDuration (ns): " + avgDuration +
-                " maxDuration (ns): " + maxProcessingDuration;
+                " totalDuration (us): " + totalProcessingDuration +
+                " avgDuration (us): " + avgDuration +
+                " maxDuration (us): " + maxProcessingDuration;
     }
 
     public synchronized void startCollectingStatistics() {
