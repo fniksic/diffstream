@@ -32,7 +32,7 @@ done
 
 ## The directory that will contain the results
 RESULTS_PARENT_DIR="data/online-monitoring/"
-RESULTS_DIR_NAME="server_load_${LOAD}_time_${TEST_TIME}_leftpar_1_right_par_2"
+RESULTS_DIR_NAME="server_load_${LOAD}_time_${TEST_TIME}_test"
 RESULTS_DIR="${RESULTS_PARENT_DIR}/${RESULTS_DIR_NAME}"
 
 echo "Starting RMI registry"
@@ -70,14 +70,16 @@ cp unmatched-items.txt "../${RESULTS_DIR}/"
 mv durations-matcher-id-1.bin "../${RESULTS_DIR}/"
 
 ## Plot the results
-echo "Producing plots..."
-cd "../${RESULTS_PARENT_DIR}"
-python3 collect_and_plot.py "${RESULTS_DIR_NAME}"
-cd ../../
+#echo "Producing plots..."
+#cd "../${RESULTS_PARENT_DIR}"
+#python3 collect_and_plot.py "${RESULTS_DIR_NAME}"
+#cd ../../
+#
+#echo "Plots and results are available in: ${RESULTS_DIR}"
+#echo "File: ${RESULTS_DIR}/unmatched_histogram.pdf contains a histogram of the unmatched items."
+#echo "File: ${RESULTS_DIR}/used_memory_in_time.pdf contains the used memory in time."
 
-echo "Plots and results are available in: ${RESULTS_DIR}"
-echo "File: ${RESULTS_DIR}/unmatched_histogram.pdf contains a histogram of the unmatched items."
-echo "File: ${RESULTS_DIR}/used_memory_in_time.pdf contains the used memory in time."
+cd ..
 
 PID="$(pidof rmiregistry)"
 if [[ "${PID}" -ne "" ]]; then
