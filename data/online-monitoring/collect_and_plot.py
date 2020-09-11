@@ -73,7 +73,7 @@ def process_unmatched(unmatched):
 
 
 def get_latencies(dir_name):
-    latencies = np.fromfile(path.join(dir_name, 'durations-matcher-id-1.bin'), '>i8') // 1000
+    latencies = np.fromfile(path.join(dir_name, 'durations-matcher-id-1.bin'), '>i4')
     return latencies
 
 
@@ -114,8 +114,8 @@ def plot_throughput(dir_name, ts_one, throughput_one, ts_two, throughput_two):
     ax.legend()
 
     plt.tight_layout()
-    # plt.show()
-    plt.savefig(path.join(dir_name, 'throughput.pdf'))
+    plt.show()
+    # plt.savefig(path.join(dir_name, 'throughput.pdf'))
 
 
 def plot_latencies(dir_name, latencies_one, latencies_two):
@@ -172,8 +172,8 @@ def main():
     plt.rcParams['mathtext.fontset'] = 'stix'
     plt.rcParams['font.family'] = 'STIXGeneral'
 
-    dir_one = "server_load_30000_time_7200_thursday_real"
-    dir_two = "server_load_30000_time_7200_thursday_dummy"
+    dir_one = "server_load_6000_time_300_test"
+    dir_two = "server_load_6000_time_300_test"
     out_dir = "."
 
     # if(not len(sys.argv) == 2):

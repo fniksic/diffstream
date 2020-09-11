@@ -8,8 +8,9 @@
 ##
 
 ## Change those if you want to run the test with different load
-## and for a longer period of time
+## and acceleration, and for a longer period of time
 LOAD=5000
+ACCEL=0
 TEST_TIME=600
 
 helpFunction()
@@ -21,18 +22,19 @@ helpFunction()
    exit 1 # Exit script after printing help
 }
 
-while getopts "l:t:" opt
+while getopts "l:t:a:" opt
 do
    case "$opt" in
       l ) LOAD="$OPTARG" ;;
       t ) TEST_TIME="$OPTARG" ;;
+      a ) ACCEL="$OPTARG" ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
    esac
 done
 
 ## The directory that will contain the results
 RESULTS_PARENT_DIR="data/online-monitoring/"
-RESULTS_DIR_NAME="server_load_${LOAD}_time_${TEST_TIME}_test"
+RESULTS_DIR_NAME="server_load_${LOAD}_accel_${ACCEL}_time_${TEST_TIME}_test"
 RESULTS_DIR="${RESULTS_PARENT_DIR}/${RESULTS_DIR_NAME}"
 
 echo "Starting RMI registry"
@@ -54,7 +56,7 @@ STDERR_LOG=online-monitoring-stderr.log
 echo "Running the test with load: ${LOAD} for duration: ${TEST_TIME} seconds."
 echo "|-- stdout can be checked out here: streaming-benchmarks/${STDOUT_LOG}"
 echo "|-- and stderr here: streaming-benchmarks/${STDERR_LOG}"
-LOAD=${LOAD} TEST_TIME=${TEST_TIME} ./flink-bench.sh FLINK_TEST 1> ${STDOUT_LOG} 2> ${STDERR_LOG}
+LOAD=${LOAD} TEST_TIME=${TEST_TIME} ACCEL=${ACCEL} ./flink-bench.sh FLINK_TEST 1> ${STDOUT_LOG} 2> ${STDERR_LOG}
 ## When this ends there is an exception but that is fine.
 ## TODO: Figure out if this could affect anything.
 
