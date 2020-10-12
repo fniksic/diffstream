@@ -10,8 +10,9 @@ buildNumber.properties
 .classpath
 .project
 .settings/
+.idea/
 
-data/
+data/online-monitoring/*
 !data/online-monitoring/collect_and_plot.py
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
