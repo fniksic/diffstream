@@ -29,8 +29,8 @@ def plot_memory_in_time(dir_name, mems_one, mems_two):
     x_two = np.linspace(0, size_two, size_two)
 
     fig, ax = plt.subplots()
-    ax.scatter(x_one, mems_one, 0.2, label='With matcher')
-    ax.scatter(x_two, mems_two, 0.2, label='Without matcher', alpha=0.7)
+    ax.scatter(x_one, mems_one, 0.2, label='With matcher', rasterized=True)
+    ax.scatter(x_two, mems_two, 0.2, label='Without matcher', alpha=0.7, rasterized=True)
     ax.set_xticks([0, 1800, 3600, 5400, 7200])
     ax.set_xlabel("Time (seconds)")
     ax.set_ylabel("Used memory (MB)")
@@ -101,7 +101,7 @@ def get_latencies(dir_name):
 
 def plot_unmatched_in_time(dir_name, timestamps, total_unmatched):
     fig, ax = plt.subplots()
-    ax.scatter(timestamps, total_unmatched, 0.2, label='Total unmatched')
+    ax.scatter(timestamps, total_unmatched, 0.2, label='Total unmatched', rasterized=True)
     ax.set_xticks([0, 1800, 3600, 5400, 7200])
     ax.set_xlabel("Time (seconds)")
     ax.set_ylabel("Number of unmatched events")
