@@ -38,7 +38,7 @@ def plot_memory_in_time(dir_name, mems_one, mems_two):
 
     plt.tight_layout()
     # plt.show()
-    plt.savefig(path.join(dir_name, "used_memory_in_time.pdf"))
+    plt.savefig(path.join(dir_name, "used_memory_in_time.pdf"), dpi=300)
 
 
 def plot_memory_ccdfs(dir_name, mems_one, mems_two):
@@ -108,7 +108,7 @@ def plot_unmatched_in_time(dir_name, timestamps, total_unmatched):
 
     plt.tight_layout()
     # plt.show()
-    plt.savefig(path.join(dir_name, "unmatched_in_time.pdf"))
+    plt.savefig(path.join(dir_name, "unmatched_in_time.pdf"), dpi=300)
 
 
 def plot_unmatched_histogram(dir_name, total_unmatched):
