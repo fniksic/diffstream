@@ -2,34 +2,41 @@
 
 A differential testing library for [Apache Flink](https://flink.apache.org/) programs.
 
-The tool and the underlying methodology are described in the OOPSLA paper, which can be found in `PAPER.pdf`.
-This README contains: (1) instructions to quickly get started, (2) a detailed tutorial on how to use the tool, (3) how to re-run the experiments from the paper and interpret the results, and (4) additional documentation for reference.
+The tool and the underlying methodology are described in the OOPSLA'20 paper (`OOPSLA20.pdf`):
 
-## Getting Started Guide
+- DiffStream: Differential Output Testing for Stream Processing Programs, K. Kallas, F. Niksic, C. Stanford, and R. Alur. Object-Oriented Programming, Systems, Languages, and Applications (OOPSLA), November 2020.
 
-**Virtual Machine:** The virtual machine should come with all dependencies installed.
-(For later users, the installation instructions can be found in `INSTALL.md`.) Here is the required info to log in:
+This README contains: (1) installation and getting started instructions, (2) a detailed tutorial on how to use the tool, (3) how to re-run the experiments from the paper and interpret the results, and (4) additional documentation for reference.
 
-```
-Username: diffstream
-Password: diffstream
-```
+## Installation
 
-Note: We suggest running the VM with at least 6GB of RAM and 2 processor cores so that everything runs smoothly. With less than 2 cores, there won't be visible scalability in the Topic Count experiment.
+Clone this repository.
+Then follow the instructions in `INSTALL.md`.
+This will require installing Java 11, Maven, and getting the `flink-training-exercises` submodule.
 
-**Addendum: running the VM**
+### Virtual Machine
+
+Alternatively, if you prefer, you can try out DiffStream as a pre-built VM instead of installing it yourself.
+The artifact (version from September 16, 2020) is hosted [on Zenodo](https://zenodo.org/record/4033001).
+The virtual machine should come with all dependencies installed.
+To log in, use username `diffstream` and password `diffstream`.
+We suggest running the VM with at least 6GB of RAM and 2 processor cores so that everything runs smoothly.
+With less than 2 cores, there won't be visible scalability in the Topic Count experiment.
+
 [VirtualBox](https://www.virtualbox.org/) can be used to open the VM.
 We are not sure why, but sometimes the machine has trouble loading and gets stuck at a black screen. If you have this problem, try powering it off and on again and also pressing the Enter key when it opens (and select Ubuntu).
-Once the machine loads, you can then find DiffStream in Files (~/diffstream).
+Once the machine loads, you can find DiffStream in Files (~/diffstream).
 Open `README.md`, which should be identical to this file, *except* for missing this paragraph.
 Please note that many tests in this file will print out "WARNING:" statements unrelated to DiffStream, but related to certain dependencies; these can safely be ignored.
 Finally, for the Tutorial and Step-by-Step Guide below, we recommend using IntelliJ to open and browse source code .java files. It should be installed (search for it in the dash).
 
-DiffStream is a testing tool. The tool is used by writing two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
+## Quick-Start Guide
 
 To check that the tool is working properly, you can run `mvn test` (in the top-level directory, where this README is). This runs unit tests.
 
-To quickly validate the paper experiments, we provide the following 4 shell scripts:
+DiffStream is used by writing two Flink programs (using the Java API), providing a specification of correct ordering behavior, and then connecting the output to the DiffStream matcher. DiffStream either succeeds (normal termination) or reports a bug (raises StreamsNotEquivalentException). For more details on how to use it yourself or modify the existing examples, see the (optional) "Tutorial" below.
+
+To quickly validate the paper experiments, we also provide the following 4 shell scripts:
 
 - **(Section 5.1 case study, ~10 seconds)** Run `./run_taxi.sh`. Verify that 5 tests are run and that the build succeeds.
 

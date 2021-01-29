@@ -50,7 +50,7 @@ sudo systemctl start redis-server.service
 
 to start the server.
 
-## (Not needed) Installing Docker
+<!-- ## (Not needed) Installing Docker
 
 First run `sudo apt install docker.io` and then use:
 
@@ -72,7 +72,7 @@ Install docker and run:
 
 ```sh
 docker run -d --name orientdb -p 2424:2424 -p 2480:2480 -e ORIENTDB_ROOT_PASSWORD=root orientdb:latest
-```
+``` -->
 
 ## Starting the Java RMI registry
 
